@@ -1,0 +1,12 @@
+<!doctype html><html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cafe Acorn | کافه بلوط</title><link rel="stylesheet" href="style.css"></head><body>
+<header><b>🌰 Cafe Acorn</b><nav><a href="#home">صفحه اصلی</a><a href="#menu">منو</a><a href="#about">درباره ما</a><a href="#contact">تماس با ما</a></nav><button id="searchBtn">⌕</button></header>
+<section id="home" class="hero"><div><div class="logo">🌰</div><h1>کافه بلوط</h1><p>اینجا جاییه برای لحظه‌های خوب،<br>با طعم قهوه و آرامش.</p><button onclick="go('menu')">مشاهده منو</button></div></section>
+<div class="cats"><button data-cat="همه">▦<small>دسته‌بندی‌ها</small></button><button data-cat="قهوه گرم">☕<small>قهوه گرم</small></button><button data-cat="نوشیدنی سرد">🧊<small>نوشیدنی سرد</small></button><button data-cat="شیک‌ها">🥤<small>شیک</small></button><button data-cat="کیک‌ها">🍰<small>دسر و کیک</small></button><button data-cat="صبحانه">🍳<small>صبحانه</small></button><button data-cat="غذا و فست‌فود">🍔<small>غذا و فست‌فود</small></button><button data-cat="قلیان">💨<small>قلیان</small></button></div>
+<main><section id="menu"><div class="head"><div><span>منوی دیجیتال</span><h2>منوی Cafe Acorn</h2></div><input id="search" placeholder="جستجوی محصول..."></div><div id="chips" class="chips"></div><div id="products"></div></section>
+<section class="special"><h2>پیشنهاد امروز</h2><div id="specials"></div></section>
+<section id="about" class="about"><div><span>درباره کافه</span><h2>کافه بلوط</h2><p>کافه بلوط جایی است برای تجربه‌ای دلنشین با قهوه‌های خوش‌عطر، نوشیدنی‌های متنوع و فضایی آرام و صمیمی.</p><p>⏰ ۷:۳۰ تا ۱۳:۰۰ و ۱۷:۰۰ تا ۲۳:۰۰</p><p>📍 بلوار امام حسین، جنب کابینت بلوط</p><p>📷 @cafe_acorn</p></div><div class="gallery"><img src="assets/cafe1.jpg"><img src="assets/cafe2.jpg"><img src="assets/cafe3.jpg"><img src="assets/cafe4.jpg"></div></section>
+<section id="contact" class="contact"><b>اطلاعات تماس</b><p>بلوار امام حسین، جنب کابینت بلوط</p><button onclick="map()">مشاهده مسیر</button></section></main>
+<div id="modal"><article><button onclick="closeModal()">×</button><div id="detail"></div></article></div><footer>© 2026 Cafe Acorn · COFFEE & GOOD MOMENTS</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="script.js"></script></body></html>

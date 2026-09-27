@@ -1,0 +1,4 @@
+Cafe Acorn — Supabase connection configured.
+
+The Supabase project URL and anon key are already placed in supabase-config.js.
+Open index.html for the customer menu and admin.html for the owner panel.
