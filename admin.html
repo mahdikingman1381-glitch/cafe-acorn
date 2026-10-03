@@ -107,6 +107,15 @@
     .btn.success{background:#3d7b50}
     .btn.small{padding:7px 10px;font-size:13px;margin:3px}
 
+    .link-btn{
+      background:none;
+      border:0;
+      color:#6b4b38;
+      text-decoration:underline;
+      margin-top:14px;
+      padding:5px;
+    }
+
     .error{
       color:#b33a32;
       background:#fff0ee;
@@ -165,13 +174,6 @@
       background:#fffdfa;
     }
 
-    .item-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
-    }
-
     .product-row{
       display:flex;
       gap:14px;
@@ -204,9 +206,7 @@
       font-weight:normal;
     }
 
-    .check input{
-      width:auto;
-    }
+    .check input{width:auto}
 
     .preview{
       max-width:180px;
@@ -231,23 +231,84 @@
 <!-- LOGIN -->
 <section id="loginScreen" class="login">
   <div class="login-box">
-    <h1>🌰 Cafe Acorn</h1>
-    <h2>ورود صاحب سایت</h2>
-    <p class="muted">برای مدیریت منو وارد شوید.</p>
 
-    <label>ایمیل</label>
-    <input id="loginEmail" type="email" placeholder="ایمیل حساب Supabase">
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <h1>🌰 Cafe Acorn</h1>
+      <h2>ورود صاحب سایت</h2>
+      <p class="muted">برای مدیریت منو وارد شوید.</p>
 
-    <label>رمز عبور</label>
-    <input id="loginPassword" type="password" placeholder="رمز عبور">
+      <label>ایمیل</label>
+      <input id="loginEmail" type="email" placeholder="ایمیل حساب Supabase">
 
-    <button class="btn" style="width:100%" onclick="login()">
-      ورود به پنل
-    </button>
+      <label>رمز عبور</label>
+      <input id="loginPassword" type="password" placeholder="رمز عبور">
 
-    <div id="loginMessage"></div>
+      <button class="btn" style="width:100%" onclick="login()">
+        ورود به پنل
+      </button>
+
+      <div style="text-align:center">
+        <button class="link-btn" onclick="showForgotPassword()">
+          رمز عبور را فراموش کرده‌ام
+        </button>
+      </div>
+
+      <div id="loginMessage"></div>
+    </div>
+
+
+    <!-- FORGOT PASSWORD -->
+    <div id="forgotForm" class="hidden">
+      <h1>🌰 Cafe Acorn</h1>
+      <h2>بازیابی رمز عبور</h2>
+
+      <p class="muted">
+        ایمیل حساب Supabase را وارد کنید تا لینک تغییر رمز برایتان ارسال شود.
+      </p>
+
+      <label>ایمیل</label>
+      <input id="forgotEmail" type="email" placeholder="ایمیل حساب">
+
+      <button class="btn success" style="width:100%" onclick="sendResetEmail()">
+        ارسال لینک تغییر رمز
+      </button>
+
+      <div style="text-align:center">
+        <button class="link-btn" onclick="showLoginForm()">
+          بازگشت به ورود
+        </button>
+      </div>
+
+      <div id="forgotMessage"></div>
+    </div>
+
+
+    <!-- RESET PASSWORD -->
+    <div id="resetForm" class="hidden">
+      <h1>🌰 Cafe Acorn</h1>
+      <h2>تعیین رمز جدید</h2>
+
+      <p class="muted">
+        رمز عبور جدید خود را وارد کنید.
+      </p>
+
+      <label>رمز جدید</label>
+      <input id="newPassword" type="password" placeholder="رمز جدید">
+
+      <label>تکرار رمز جدید</label>
+      <input id="newPassword2" type="password" placeholder="تکرار رمز جدید">
+
+      <button class="btn success" style="width:100%" onclick="updatePassword()">
+        ذخیره رمز جدید
+      </button>
+
+      <div id="resetMessage"></div>
+    </div>
+
   </div>
 </section>
+
 
 <!-- ADMIN -->
 <section id="adminScreen" class="hidden">
@@ -282,6 +343,7 @@
         اطلاعات کافه
       </button>
     </div>
+
 
     <!-- PRODUCTS -->
     <section id="productsTab">
@@ -371,12 +433,14 @@
         <div id="productMessage"></div>
       </div>
 
+
       <div class="panel">
         <h2>🍔 محصولات موجود</h2>
         <div id="productsList">در حال دریافت...</div>
       </div>
 
     </section>
+
 
     <!-- CATEGORIES -->
     <section id="categoriesTab" class="hidden">
@@ -408,6 +472,7 @@
       </div>
 
     </section>
+
 
     <!-- SUBCATEGORIES -->
     <section id="subcategoriesTab" class="hidden">
@@ -442,6 +507,7 @@
       </div>
 
     </section>
+
 
     <!-- CAFE SETTINGS -->
     <section id="cafeTab" class="hidden">
@@ -479,91 +545,352 @@
   </main>
 </section>
 
+
 <script>
+
 const cfg = window.CAFE_ACORN_SUPABASE;
-const supabaseClient = window.supabase.createClient(cfg.url, cfg.key);
+
+const supabaseClient =
+  window.supabase.createClient(cfg.url, cfg.key);
 
 let categories = [];
 let subcategories = [];
 let products = [];
 let cafeSettings = null;
 
+
 document.addEventListener('DOMContentLoaded', init);
 
+
 async function init(){
-  const {data:{session}} = await supabaseClient.auth.getSession();
+
+  const {
+    data:{session}
+  } = await supabaseClient.auth.getSession();
 
   if(session){
     await showAdmin();
   }else{
     showLogin();
   }
+
+  supabaseClient.auth.onAuthStateChange(
+    async (event, session) => {
+
+      if(event === 'PASSWORD_RECOVERY'){
+        showResetPassword();
+      }
+
+    }
+  );
 }
+
 
 function showLogin(){
-  document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('adminScreen').classList.add('hidden');
+
+  document.getElementById('loginScreen')
+    .classList.remove('hidden');
+
+  document.getElementById('adminScreen')
+    .classList.add('hidden');
+
+  showLoginForm();
 }
 
+
+function showLoginForm(){
+
+  document.getElementById('loginForm')
+    .classList.remove('hidden');
+
+  document.getElementById('forgotForm')
+    .classList.add('hidden');
+
+  document.getElementById('resetForm')
+    .classList.add('hidden');
+}
+
+
+function showForgotPassword(){
+
+  document.getElementById('loginForm')
+    .classList.add('hidden');
+
+  document.getElementById('forgotForm')
+    .classList.remove('hidden');
+
+  document.getElementById('resetForm')
+    .classList.add('hidden');
+
+  document.getElementById('forgotEmail').value =
+    document.getElementById('loginEmail').value.trim();
+
+  document.getElementById('forgotMessage').innerHTML = '';
+}
+
+
+function showResetPassword(){
+
+  document.getElementById('loginScreen')
+    .classList.remove('hidden');
+
+  document.getElementById('adminScreen')
+    .classList.add('hidden');
+
+  document.getElementById('loginForm')
+    .classList.add('hidden');
+
+  document.getElementById('forgotForm')
+    .classList.add('hidden');
+
+  document.getElementById('resetForm')
+    .classList.remove('hidden');
+}
+
+
+async function sendResetEmail(){
+
+  const email =
+    document.getElementById('forgotEmail')
+      .value.trim();
+
+  const message =
+    document.getElementById('forgotMessage');
+
+  message.innerHTML = '';
+
+  if(!email){
+
+    message.innerHTML =
+      '<div class="error">ایمیل را وارد کنید.</div>';
+
+    return;
+  }
+
+
+  const {error} =
+    await supabaseClient.auth
+      .resetPasswordForEmail(email,{
+        redirectTo:
+          window.location.origin +
+          window.location.pathname
+      });
+
+
+  if(error){
+
+    message.innerHTML =
+      '<div class="error">' +
+      esc(error.message) +
+      '</div>';
+
+    return;
+  }
+
+
+  message.innerHTML =
+    '<div class="success">' +
+    'لینک تغییر رمز به ایمیل شما ارسال شد. ' +
+    'ایمیل خود را بررسی کنید.' +
+    '</div>';
+}
+
+
+async function updatePassword(){
+
+  const password =
+    document.getElementById('newPassword').value;
+
+  const password2 =
+    document.getElementById('newPassword2').value;
+
+  const message =
+    document.getElementById('resetMessage');
+
+  message.innerHTML = '';
+
+
+  if(!password || !password2){
+
+    message.innerHTML =
+      '<div class="error">هر دو قسمت رمز را وارد کنید.</div>';
+
+    return;
+  }
+
+
+  if(password.length < 6){
+
+    message.innerHTML =
+      '<div class="error">رمز عبور باید حداقل ۶ کاراکتر باشد.</div>';
+
+    return;
+  }
+
+
+  if(password !== password2){
+
+    message.innerHTML =
+      '<div class="error">دو رمز عبور یکسان نیستند.</div>';
+
+    return;
+  }
+
+
+  const {error} =
+    await supabaseClient.auth
+      .updateUser({
+        password
+      });
+
+
+  if(error){
+
+    message.innerHTML =
+      '<div class="error">' +
+      esc(error.message) +
+      '</div>';
+
+    return;
+  }
+
+
+  message.innerHTML =
+    '<div class="success">' +
+    'رمز عبور با موفقیت تغییر کرد. در حال ورود به پنل...' +
+    '</div>';
+
+
+  setTimeout(async()=>{
+
+    await showAdmin();
+
+  },1000);
+}
+
+
 async function showAdmin(){
-  document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('adminScreen').classList.remove('hidden');
+
+  document.getElementById('loginScreen')
+    .classList.add('hidden');
+
+  document.getElementById('adminScreen')
+    .classList.remove('hidden');
 
   await loadAll();
 }
 
+
 async function login(){
 
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
+  const email =
+    document.getElementById('loginEmail')
+      .value.trim();
 
-  const message = document.getElementById('loginMessage');
+  const password =
+    document.getElementById('loginPassword')
+      .value;
+
+  const message =
+    document.getElementById('loginMessage');
 
   message.innerHTML = '';
 
+
   if(!email || !password){
-    message.innerHTML = '<div class="error">ایمیل و رمز عبور را وارد کنید.</div>';
+
+    message.innerHTML =
+      '<div class="error">' +
+      'ایمیل و رمز عبور را وارد کنید.' +
+      '</div>';
+
     return;
   }
 
-  const {error} = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
+
+  const {error} =
+    await supabaseClient.auth
+      .signInWithPassword({
+        email,
+        password
+      });
+
 
   if(error){
+
     message.innerHTML =
-      '<div class="error">ورود ناموفق بود. ایمیل یا رمز عبور را بررسی کنید.</div>';
+      '<div class="error">' +
+      'ورود ناموفق بود. ایمیل یا رمز عبور را بررسی کنید.' +
+      '</div>';
+
     return;
   }
+
 
   await showAdmin();
 }
 
+
 async function logout(){
+
   await supabaseClient.auth.signOut();
+
   showLogin();
 }
 
+
 async function loadAll(){
 
-  const [c,s,p,cs] = await Promise.all([
-    supabaseClient.from('categories').select('*').order('sort_order'),
-    supabaseClient.from('subcategories').select('*').order('sort_order'),
-    supabaseClient.from('products').select('*').order('sort_order'),
-    supabaseClient.from('cafe_settings').select('*').limit(1).maybeSingle()
+  const [
+    c,
+    s,
+    p,
+    cs
+  ] = await Promise.all([
+
+    supabaseClient
+      .from('categories')
+      .select('*')
+      .order('sort_order'),
+
+    supabaseClient
+      .from('subcategories')
+      .select('*')
+      .order('sort_order'),
+
+    supabaseClient
+      .from('products')
+      .select('*')
+      .order('sort_order'),
+
+    supabaseClient
+      .from('cafe_settings')
+      .select('*')
+      .limit(1)
+      .maybeSingle()
+
   ]);
 
+
   if(c.error || s.error || p.error){
+
     alert('دریافت اطلاعات انجام نشد.');
-    console.error(c.error,s.error,p.error);
+
+    console.error(
+      c.error,
+      s.error,
+      p.error
+    );
+
     return;
   }
+
 
   categories = c.data || [];
   subcategories = s.data || [];
   products = p.data || [];
   cafeSettings = cs.data || null;
+
 
   renderCategoryOptions();
   renderSubcategoryOptions();
@@ -573,609 +900,299 @@ async function loadAll(){
   renderCafe();
 }
 
+
 function renderCategoryOptions(){
 
   const selects = [
-    document.getElementById('productCategory'),
-    document.getElementById('subcategoryCategory')
+
+    document.getElementById(
+      'productCategory'
+    ),
+
+    document.getElementById(
+      'subcategoryCategory'
+    )
+
   ];
 
+
   selects.forEach(select=>{
+
     if(!select) return;
+
 
     select.innerHTML =
       '<option value="">انتخاب کنید</option>' +
-      categories.map(c =>
-        `<option value="${esc(c.id)}">${esc(c.name)}</option>`
+
+      categories.map(c=>
+        `<option value="${esc(c.id)}">
+          ${esc(c.name)}
+        </option>`
       ).join('');
+
   });
 }
+
 
 function loadSubcategoryOptions(){
 
   const categoryId =
-    document.getElementById('productCategory').value;
+    document.getElementById(
+      'productCategory'
+    ).value;
+
 
   const select =
-    document.getElementById('productSubcategory');
+    document.getElementById(
+      'productSubcategory'
+    );
 
-  const list = subcategories.filter(
-    s => String(s.category_id) === String(categoryId)
-  );
+
+  const list =
+    subcategories.filter(
+      s =>
+        String(s.category_id) ===
+        String(categoryId)
+    );
+
 
   select.innerHTML =
     '<option value="">انتخاب زیر‌دسته</option>' +
-    list.map(s =>
-      `<option value="${esc(s.id)}">${esc(s.name)}</option>`
+
+    list.map(s=>
+      `<option value="${esc(s.id)}">
+        ${esc(s.name)}
+      </option>`
     ).join('');
 }
 
+
 function renderSubcategoryOptions(){
+
   loadSubcategoryOptions();
 }
 
+
 function renderProducts(){
 
-  const box = document.getElementById('productsList');
+  const box =
+    document.getElementById(
+      'productsList'
+    );
+
 
   if(!products.length){
-    box.innerHTML='<p class="muted">هنوز محصولی ثبت نشده.</p>';
+
+    box.innerHTML =
+      '<p class="muted">هنوز محصولی ثبت نشده.</p>';
+
     return;
   }
 
-  box.innerHTML = products.map(p=>{
 
-    const sub = subcategories.find(
-      s => String(s.id) === String(p.subcategory_id)
-    );
+  box.innerHTML =
+    products.map(p=>{
 
-    const cat = categories.find(
-      c => String(c.id) === String(sub?.category_id)
-    );
+      const sub =
+        subcategories.find(
+          s =>
+            String(s.id) ===
+            String(p.subcategory_id)
+        );
 
-    const image = p.image_url
-      ? `<img class="thumb" src="${esc(p.image_url)}">`
-      : `<div class="thumb no-thumb">☕</div>`;
 
-    return `
-      <div class="item">
+      const cat =
+        categories.find(
+          c =>
+            String(c.id) ===
+            String(sub?.category_id)
+        );
 
-        <div class="product-row">
 
-          ${image}
+      const image =
+        p.image_url
 
-          <div style="flex:1">
-            <strong>${esc(p.name)}</strong>
+        ? `<img class="thumb"
+             src="${esc(p.image_url)}">`
 
-            <div class="muted">
-              ${esc(cat?.name || '')}
-              ${sub ? ' / ' + esc(sub.name) : ''}
+        : `<div class="thumb no-thumb">
+             ☕
+           </div>`;
+
+
+      return `
+
+        <div class="item">
+
+          <div class="product-row">
+
+            ${image}
+
+            <div style="flex:1">
+
+              <strong>
+                ${esc(p.name)}
+              </strong>
+
+              <div class="muted">
+
+                ${esc(cat?.name || '')}
+
+                ${sub
+                  ? ' / ' + esc(sub.name)
+                  : ''
+                }
+
+              </div>
+
+              <div>
+                ${Number(
+                  p.price || 0
+                ).toLocaleString('fa-IR')}
+                تومان
+              </div>
+
+              <div class="muted">
+
+                ${p.is_available
+                  ? '🟢 فعال'
+                  : '🔴 غیرفعال'
+                }
+
+                ${p.is_special
+                  ? ' · ⭐ پیشنهاد امروز'
+                  : ''
+                }
+
+                ${p.is_best_seller
+                  ? ' · 🔥 پرفروش'
+                  : ''
+                }
+
+              </div>
+
             </div>
 
-            <div>
-              ${Number(p.price || 0).toLocaleString('fa-IR')} تومان
-            </div>
+          </div>
 
-            <div class="muted">
-              ${p.is_available ? '🟢 فعال' : '🔴 غیرفعال'}
-              ${p.is_special ? ' · ⭐ پیشنهاد امروز' : ''}
-              ${p.is_best_seller ? ' · 🔥 پرفروش' : ''}
-            </div>
+
+          <div style="margin-top:10px">
+
+            <button
+              class="btn small"
+              onclick="editProduct('${esc(p.id)}')">
+              ویرایش
+            </button>
+
+            <button
+              class="btn small danger"
+              onclick="deleteProduct('${esc(p.id)}')">
+              حذف
+            </button>
+
           </div>
 
         </div>
 
-        <div style="margin-top:10px">
-          <button class="btn small" onclick="editProduct('${esc(p.id)}')">
-            ویرایش
-          </button>
+      `;
 
-          <button class="btn small danger" onclick="deleteProduct('${esc(p.id)}')">
-            حذف
-          </button>
-        </div>
-
-      </div>
-    `;
-  }).join('');
+    }).join('');
 }
+
 
 async function saveProduct(){
 
-  const id = document.getElementById('productId').value;
+  const id =
+    document.getElementById(
+      'productId'
+    ).value;
 
-  const name = document.getElementById('productName').value.trim();
-  const price = Number(document.getElementById('productPrice').value || 0);
-  const subcategory_id = document.getElementById('productSubcategory').value;
+
+  const name =
+    document.getElementById(
+      'productName'
+    ).value.trim();
+
+
+  const price =
+    Number(
+      document.getElementById(
+        'productPrice'
+      ).value || 0
+    );
+
+
+  const subcategory_id =
+    document.getElementById(
+      'productSubcategory'
+    ).value;
+
 
   if(!name || !subcategory_id){
-    showMessage('productMessage','نام و زیر‌دسته را وارد کنید.','error');
+
+    showMessage(
+      'productMessage',
+      'نام و زیر‌دسته را وارد کنید.',
+      'error'
+    );
+
     return;
   }
 
+
   let imageUrl = null;
 
+
   const file =
-    document.getElementById('productImage').files[0];
+    document.getElementById(
+      'productImage'
+    ).files[0];
+
 
   if(file){
 
     const safeName =
-      file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+      file.name.replace(
+        /[^a-zA-Z0-9._-]/g,
+        '_'
+      );
+
 
     const path =
-      Date.now() + '_' + safeName;
+      Date.now() +
+      '_' +
+      safeName;
+
 
     const upload =
       await supabaseClient.storage
         .from('product-images')
-        .upload(path,file,{upsert:true});
+        .upload(
+          path,
+          file,
+          {upsert:true}
+        );
+
 
     if(upload.error){
+
       showMessage(
         'productMessage',
         'آپلود عکس انجام نشد.',
         'error'
       );
+
       console.error(upload.error);
+
       return;
     }
+
 
     const publicUrl =
       supabaseClient.storage
         .from('product-images')
         .getPublicUrl(path);
 
-    imageUrl = publicUrl.data.publicUrl;
-  }
 
-  const payload = {
-    subcategory_id,
-    name,
-    description:document.getElementById('productDescription').value.trim(),
-    ingredients:document.getElementById('productIngredients').value.trim(),
-    allergens:document.getElementById('productAllergens').value.trim(),
-    price,
-    is_available:document.getElementById('productAvailable').checked,
-    sort_order:Number(document.getElementById('productSort').value || 1),
-    is_special:document.getElementById('productSpecial').checked,
-    is_best_seller:document.getElementById('productBest').checked
-  };
-
-  if(imageUrl){
-    payload.image_url = imageUrl;
-  }
-
-  let result;
-
-  if(id){
-    result = await supabaseClient
-      .from('products')
-      .update(payload)
-      .eq('id',id);
-  }else{
-    result = await supabaseClient
-      .from('products')
-      .insert(payload);
-  }
-
-  if(result.error){
-    showMessage(
-      'productMessage',
-      'ذخیره محصول انجام نشد.',
-      'error'
-    );
-    console.error(result.error);
-    return;
-  }
-
-  showMessage(
-    'productMessage',
-    'محصول با موفقیت ذخیره شد.',
-    'success'
-  );
-
-  resetProductForm();
-  await loadAll();
-}
-
-function editProduct(id){
-
-  const p = products.find(
-    x => String(x.id) === String(id)
-  );
-
-  if(!p) return;
-
-  document.getElementById('productFormTitle').textContent =
-    '✏️ ویرایش محصول';
-
-  document.getElementById('productId').value = p.id;
-  document.getElementById('productName').value = p.name || '';
-  document.getElementById('productPrice').value = p.price || '';
-  document.getElementById('productDescription').value = p.description || '';
-  document.getElementById('productIngredients').value = p.ingredients || '';
-  document.getElementById('productAllergens').value = p.allergens || '';
-  document.getElementById('productSort').value = p.sort_order || 1;
-  document.getElementById('productAvailable').checked = !!p.is_available;
-  document.getElementById('productSpecial').checked = !!p.is_special;
-  document.getElementById('productBest').checked = !!p.is_best_seller;
-
-  document.getElementById('productCategory').value =
-    subcategories.find(
-      s => String(s.id) === String(p.subcategory_id)
-    )?.category_id || '';
-
-  loadSubcategoryOptions();
-
-  document.getElementById('productSubcategory').value =
-    p.subcategory_id;
-
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-async function deleteProduct(id){
-
-  if(!confirm('این محصول حذف شود؟')) return;
-
-  const {error} =
-    await supabaseClient
-      .from('products')
-      .delete()
-      .eq('id',id);
-
-  if(error){
-    alert('حذف انجام نشد.');
-    console.error(error);
-    return;
-  }
-
-  await loadAll();
-}
-
-function resetProductForm(){
-
-  document.getElementById('productFormTitle').textContent =
-    '➕ افزودن محصول';
-
-  document.getElementById('productId').value = '';
-  document.getElementById('productName').value = '';
-  document.getElementById('productPrice').value = '';
-  document.getElementById('productDescription').value = '';
-  document.getElementById('productIngredients').value = '';
-  document.getElementById('productAllergens').value = '';
-  document.getElementById('productSort').value = 1;
-  document.getElementById('productAvailable').checked = true;
-  document.getElementById('productSpecial').checked = false;
-  document.getElementById('productBest').checked = false;
-  document.getElementById('productImage').value = '';
-
-  document.getElementById('imagePreview').classList.add('hidden');
-
-  document.getElementById('productCategory').value = '';
-  loadSubcategoryOptions();
-}
-
-function previewImage(event){
-
-  const file = event.target.files[0];
-
-  if(!file) return;
-
-  const preview =
-    document.getElementById('imagePreview');
-
-  preview.src = URL.createObjectURL(file);
-  preview.classList.remove('hidden');
-}
-
-async function addCategory(){
-
-  const name =
-    document.getElementById('categoryName').value.trim();
-
-  if(!name){
-    showMessage('categoryMessage','نام دسته‌بندی را وارد کنید.','error');
-    return;
-  }
-
-  const {error} =
-    await supabaseClient
-      .from('categories')
-      .insert({
-        name,
-        sort_order:Number(
-          document.getElementById('categorySort').value || 1
-        ),
-        is_active:document.getElementById('categoryActive').checked
-      });
-
-  if(error){
-    showMessage('categoryMessage','افزودن انجام نشد.','error');
-    console.error(error);
-    return;
-  }
-
-  document.getElementById('categoryName').value = '';
-
-  showMessage(
-    'categoryMessage',
-    'دسته‌بندی اضافه شد.',
-    'success'
-  );
-
-  await loadAll();
-}
-
-function renderCategories(){
-
-  const box =
-    document.getElementById('categoriesList');
-
-  box.innerHTML = categories.map(c=>`
-    <div class="item">
-
-      <strong>${esc(c.name)}</strong>
-
-      <div class="muted">
-        ${c.is_active ? '🟢 فعال' : '🔴 غیرفعال'}
-        · ترتیب ${c.sort_order || 0}
-      </div>
-
-      <button class="btn small danger"
-        onclick="deleteCategory('${esc(c.id)}')">
-        حذف
-      </button>
-
-    </div>
-  `).join('');
-}
-
-async function deleteCategory(id){
-
-  const hasSubcategory =
-    subcategories.some(
-      s => String(s.category_id) === String(id)
-    );
-
-  if(hasSubcategory){
-    alert('این دسته‌بندی زیر‌دسته دارد. ابتدا زیر‌دسته‌های آن را حذف کنید.');
-    return;
-  }
-
-  if(!confirm('این دسته‌بندی حذف شود؟')) return;
-
-  const {error} =
-    await supabaseClient
-      .from('categories')
-      .delete()
-      .eq('id',id);
-
-  if(error){
-    alert('حذف انجام نشد.');
-    console.error(error);
-    return;
-  }
-
-  await loadAll();
-}
-
-async function addSubcategory(){
-
-  const category_id =
-    document.getElementById('subcategoryCategory').value;
-
-  const name =
-    document.getElementById('subcategoryName').value.trim();
-
-  if(!category_id || !name){
-    showMessage(
-      'subcategoryMessage',
-      'دسته اصلی و نام زیر‌دسته را وارد کنید.',
-      'error'
-    );
-    return;
-  }
-
-  const {error} =
-    await supabaseClient
-      .from('subcategories')
-      .insert({
-        category_id,
-        name,
-        sort_order:Number(
-          document.getElementById('subcategorySort').value || 1
-        ),
-        is_active:
-          document.getElementById('subcategoryActive').checked
-      });
-
-  if(error){
-    showMessage(
-      'subcategoryMessage',
-      'افزودن انجام نشد.',
-      'error'
-    );
-    console.error(error);
-    return;
-  }
-
-  document.getElementById('subcategoryName').value = '';
-
-  showMessage(
-    'subcategoryMessage',
-    'زیر‌دسته اضافه شد.',
-    'success'
-  );
-
-  await loadAll();
-}
-
-function renderSubcategories(){
-
-  const box =
-    document.getElementById('subcategoriesList');
-
-  box.innerHTML = subcategories.map(s=>{
-
-    const cat =
-      categories.find(
-        c => String(c.id) === String(s.category_id)
-      );
-
-    return `
-      <div class="item">
-
-        <strong>${esc(s.name)}</strong>
-
-        <div class="muted">
-          ${esc(cat?.name || '')}
-          · ${s.is_active ? '🟢 فعال' : '🔴 غیرفعال'}
-        </div>
-
-        <button class="btn small danger"
-          onclick="deleteSubcategory('${esc(s.id)}')">
-          حذف
-        </button>
-
-      </div>
-    `;
-  }).join('');
-}
-
-async function deleteSubcategory(id){
-
-  const hasProducts =
-    products.some(
-      p => String(p.subcategory_id) === String(id)
-    );
-
-  if(hasProducts){
-    alert('این زیر‌دسته محصول دارد. ابتدا محصولات آن را حذف یا جابه‌جا کنید.');
-    return;
-  }
-
-  if(!confirm('این زیر‌دسته حذف شود؟')) return;
-
-  const {error} =
-    await supabaseClient
-      .from('subcategories')
-      .delete()
-      .eq('id',id);
-
-  if(error){
-    alert('حذف انجام نشد.');
-    console.error(error);
-    return;
-  }
-
-  await loadAll();
-}
-
-function renderCafe(){
-
-  if(!cafeSettings) return;
-
-  document.getElementById('cafeName').value =
-    cafeSettings.cafe_name || '';
-
-  document.getElementById('cafeTagline').value =
-    cafeSettings.tagline || '';
-
-  document.getElementById('cafeHours').value =
-    cafeSettings.opening_hours || '';
-
-  document.getElementById('cafeAddress').value =
-    cafeSettings.address || '';
-
-  document.getElementById('cafeInstagram').value =
-    cafeSettings.instagram || '';
-
-  document.getElementById('cafeMap').value =
-    cafeSettings.map_url || '';
-}
-
-async function saveCafeSettings(){
-
-  const payload = {
-    cafe_name:document.getElementById('cafeName').value.trim(),
-    tagline:document.getElementById('cafeTagline').value.trim(),
-    opening_hours:document.getElementById('cafeHours').value.trim(),
-    address:document.getElementById('cafeAddress').value.trim(),
-    instagram:document.getElementById('cafeInstagram').value.trim(),
-    map_url:document.getElementById('cafeMap').value.trim()
-  };
-
-  let result;
-
-  if(cafeSettings?.id){
-    result =
-      await supabaseClient
-        .from('cafe_settings')
-        .update(payload)
-        .eq('id',cafeSettings.id);
-  }else{
-    result =
-      await supabaseClient
-        .from('cafe_settings')
-        .insert(payload);
-  }
-
-  if(result.error){
-    showMessage(
-      'cafeMessage',
-      'ذخیره اطلاعات انجام نشد.',
-      'error'
-    );
-    console.error(result.error);
-    return;
-  }
-
-  showMessage(
-    'cafeMessage',
-    'اطلاعات کافه ذخیره شد.',
-    'success'
-  );
-
-  await loadAll();
-}
-
-function showTab(id,button){
-
-  document.querySelectorAll(
-    '#productsTab,#categoriesTab,#subcategoriesTab,#cafeTab'
-  ).forEach(x=>x.classList.add('hidden'));
-
-  document.getElementById(id).classList.remove('hidden');
-
-  document.querySelectorAll('.tab')
-    .forEach(x=>x.classList.remove('active'));
-
-  button.classList.add('active');
-}
-
-function showMessage(id,text,type){
-
-  const box=document.getElementById(id);
-
-  box.innerHTML =
-    `<div class="${type}">${esc(text)}</div>`;
-
-  setTimeout(()=>{
-    box.innerHTML='';
-  },4000);
-}
-
-function esc(value){
-
-  return String(value ?? '')
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;')
-    .replaceAll('"','&quot;')
-    .replaceAll("'",'&#039;');
-}
-</script>
-
-</body>
-</html>
+    imageUrl =
+      publicUrl.data.public
