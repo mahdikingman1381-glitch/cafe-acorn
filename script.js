@@ -1,445 +1,566 @@
-const cfg = window.CAFE_ACORN_SUPABASE;
-const supabaseClient = window.supabase.createClient(cfg.url, cfg.key);
+const cfg = window.CAFE_ACORN_SUPABASE || {};
+const supabaseClient = window.supabase.createClient(
+  cfg.url,
+  cfg.anonKey || cfg.key
+);
 
 let categories = [];
 let subcategories = [];
 let products = [];
 let cafe = {};
-let activeCategory = 'همه';
+let selectedCategory = null;
+let selectedSubcategory = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelector('#search')?.addEventListener('input', render);
-  document.querySelector('#searchBtn')?.addEventListener('click', () => {
-    go('menu');
-    setTimeout(() => document.querySelector('#search')?.focus(), 300);
-  });
+const $ = (id) => document.getElementById(id);
 
-  document.querySelector('#modal')?.addEventListener('click', e => {
-    if (e.target.id === 'modal') closeModal();
-  });
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
-  });
-
-  loadMenu();
-});
+function formatPrice(price) {
+  if (price === null || price === undefined || price === "") return "";
+  return Number(price).toLocaleString("fa-IR") + " تومان";
+}
 
 async function loadMenu() {
   try {
-    const [c, s, p, cs] = await Promise.all([
+    const [cat, sub, prod, settings] = await Promise.all([
       supabaseClient
-        .from('categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order'),
+        .from("categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order"),
 
       supabaseClient
-        .from('subcategories')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order'),
+        .from("subcategories")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order"),
 
       supabaseClient
-        .from('products')
-        .select('*')
-        .eq('is_available', true)
-        .order('sort_order'),
+        .from("products")
+        .select("*")
+        .eq("is_available", true)
+        .order("sort_order"),
 
       supabaseClient
-        .from('cafe_settings')
-        .select('*')
+        .from("cafe_settings")
+        .select("*")
         .limit(1)
         .maybeSingle()
     ]);
 
-    if (c.error) throw c.error;
-    if (s.error) throw s.error;
-    if (p.error) throw p.error;
-    if (cs.error) throw cs.error;
+    if (cat.error) throw cat.error;
+    if (sub.error) throw sub.error;
+    if (prod.error) throw prod.error;
 
-    categories = c.data || [];
-    subcategories = s.data || [];
-    products = p.data || [];
-    cafe = cs.data || {};
+    categories = cat.data || [];
+    subcategories = sub.data || [];
+    products = prod.data || [];
+    cafe = settings.data || {};
 
-    renderCafe();
+    renderCafeInfo();
     renderCategories();
-    render();
+    renderSpecials();
+    renderProducts();
+    setupSearch();
 
   } catch (error) {
     console.error(error);
 
-    const box = document.querySelector('#products');
+    const app = $("app") || $("menu") || document.body;
 
-    if (box) {
-      box.innerHTML = `
-        <div class="empty-state">
-          <p>منو در حال دریافت اطلاعات است.</p>
-          <button onclick="loadMenu()">تلاش دوباره</button>
-        </div>
-      `;
-    }
+    app.insertAdjacentHTML(
+      "afterbegin",
+      `<div style="
+        margin:20px;
+        padding:16px;
+        border-radius:14px;
+        background:#fff0f0;
+        color:#8b0000;
+        text-align:center;
+      ">
+        خطا در دریافت منو. لطفاً صفحه را دوباره باز کنید.
+      </div>`
+    );
   }
 }
 
-function getCategory(product) {
-  const sub = subcategories.find(
-    x => String(x.id) === String(product.subcategory_id)
+function renderCafeInfo() {
+  const name = cafe.cafe_name || "کافه بلوط";
+  const tagline =
+    cafe.tagline || "جایی برای آرامش و حال خوب تو ✨";
+
+  document.title = name;
+
+  const nameEls = document.querySelectorAll(
+    "#cafeName,.cafe-name,.brand-name,[data-cafe-name]"
   );
 
-  const cat = categories.find(
-    x => String(x.id) === String(sub?.category_id)
-  );
-
-  return { cat, sub };
-}
-
-function renderCafe() {
-  const name = cafe.cafe_name || 'Cafe Acorn';
-  const tagline = cafe.tagline || 'جایی برای آرامش و حال خوب تو ✨';
-
-  document.title = `${name} | منوی دیجیتال`;
-
-  const heroTitle = document.querySelector('.hero h1');
-  if (heroTitle) heroTitle.textContent = name;
-
-  const heroText = document.querySelector('.hero p');
-  if (heroText) {
-    heroText.innerHTML = escapeHTML(tagline).replace(/\n/g, '<br>');
-  }
-
-  document.querySelectorAll('.about h2').forEach(el => {
+  nameEls.forEach(el => {
     el.textContent = name;
   });
 
-  const about = document.querySelector('.about');
+  const taglineEls = document.querySelectorAll(
+    "#tagline,.tagline,[data-tagline]"
+  );
 
-  if (about) {
-    const ps = about.querySelectorAll('p');
+  taglineEls.forEach(el => {
+    el.textContent = tagline;
+  });
 
-    if (ps[0]) ps[0].textContent = tagline;
-    if (ps[1]) ps[1].textContent = '⏰ ' + (cafe.opening_hours || '');
-    if (ps[2]) ps[2].textContent = '📍 ' + (cafe.address || '');
-    if (ps[3]) ps[3].textContent = '📷 ' + (cafe.instagram || '');
-  }
+  const addressEls = document.querySelectorAll(
+    "#address,.address,[data-address]"
+  );
 
-  const contact = document.querySelector('.contact');
+  addressEls.forEach(el => {
+    el.textContent =
+      cafe.address || "بلوار امام حسین، جنب کابینت بلوط";
+  });
 
-  if (contact) {
-    const p = contact.querySelector('p');
-    if (p) p.textContent = cafe.address || '';
-  }
+  const hoursEls = document.querySelectorAll(
+    "#hours,.hours,[data-hours]"
+  );
+
+  hoursEls.forEach(el => {
+    el.textContent =
+      cafe.opening_hours || "۷:۳۰ تا ۱۳:۰۰ و ۱۷:۰۰ تا ۲۳:۰۰";
+  });
+
+  const instagramEls = document.querySelectorAll(
+    "#instagram,.instagram,[data-instagram]"
+  );
+
+  instagramEls.forEach(el => {
+    el.textContent = cafe.instagram || "@cafe_acorn";
+  });
+
+  const mapLinks = document.querySelectorAll(
+    "#mapLink,.map-link,[data-map-link]"
+  );
+
+  mapLinks.forEach(el => {
+    if (cafe.map_url) {
+      el.href = cafe.map_url;
+      el.target = "_blank";
+      el.rel = "noopener";
+    }
+  });
 }
 
 function renderCategories() {
-  const wrap = document.querySelector('.chips');
+  const container =
+    $("categories") ||
+    $("categoryList") ||
+    document.querySelector(".categories");
 
-  if (!wrap) return;
+  if (!container) return;
 
-  wrap.innerHTML = `
-    <button class="chip active" data-category="همه">
+  container.innerHTML = `
+    <button class="category-btn active" data-category="all">
       همه
     </button>
+    ${categories.map(category => `
+      <button
+        class="category-btn"
+        data-category="${escapeHTML(category.id)}"
+      >
+        ${escapeHTML(category.name)}
+      </button>
+    `).join("")}
   `;
 
-  categories.forEach(category => {
-    const button = document.createElement('button');
+  container.querySelectorAll(".category-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      container.querySelectorAll(".category-btn")
+        .forEach(x => x.classList.remove("active"));
 
-    button.className = 'chip';
-    button.dataset.category = category.id;
-    button.textContent = category.name;
+      btn.classList.add("active");
 
-    button.addEventListener('click', () => {
-      activeCategory = category.id;
+      selectedCategory =
+        btn.dataset.category === "all"
+          ? null
+          : btn.dataset.category;
 
-      document
-        .querySelectorAll('.chip')
-        .forEach(x => x.classList.remove('active'));
+      selectedSubcategory = null;
 
-      button.classList.add('active');
-
-      render();
+      renderSubcategories();
+      renderProducts();
     });
-
-    wrap.appendChild(button);
   });
 
-  const allButton = wrap.querySelector('[data-category="همه"]');
-
-  allButton?.addEventListener('click', () => {
-    activeCategory = 'همه';
-
-    document
-      .querySelectorAll('.chip')
-      .forEach(x => x.classList.remove('active'));
-
-    allButton.classList.add('active');
-
-    render();
-  });
+  renderSubcategories();
 }
 
-function render() {
-  const query = (
-    document.querySelector('#search')?.value || ''
-  ).trim().toLowerCase();
+function renderSubcategories() {
+  const container =
+    $("subcategories") ||
+    $("subcategoryList") ||
+    document.querySelector(".subcategories");
 
-  const filtered = products.filter(product => {
-    const { cat, sub } = getCategory(product);
+  if (!container) return;
 
-    const categoryOK =
-      activeCategory === 'همه' ||
-      String(cat?.id) === String(activeCategory);
+  let list = subcategories;
 
-    const searchable = `
-      ${product.name || ''}
-      ${product.name_en || ''}
-      ${product.description || ''}
-      ${product.ingredients || ''}
-      ${product.allergens || ''}
-      ${sub?.name || ''}
-      ${cat?.name || ''}
-    `.toLowerCase();
-
-    return categoryOK && (!query || searchable.includes(query));
-  });
-
-  renderProducts(filtered);
-  renderSpecials();
-}
-
-function renderProducts(list) {
-  const box = document.querySelector('#products');
-
-  if (!box) return;
+  if (selectedCategory) {
+    list = subcategories.filter(
+      x => String(x.category_id) === String(selectedCategory)
+    );
+  }
 
   if (!list.length) {
-    box.innerHTML = `
-      <div class="empty-state">
-        <p>محصولی پیدا نشد.</p>
+    container.innerHTML = "";
+    return;
+  }
+
+  container.innerHTML = `
+    <button class="subcategory-btn active" data-subcategory="all">
+      همه
+    </button>
+    ${list.map(sub => `
+      <button
+        class="subcategory-btn"
+        data-subcategory="${escapeHTML(sub.id)}"
+      >
+        ${escapeHTML(sub.name)}
+      </button>
+    `).join("")}
+  `;
+
+  container.querySelectorAll(".subcategory-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      container.querySelectorAll(".subcategory-btn")
+        .forEach(x => x.classList.remove("active"));
+
+      btn.classList.add("active");
+
+      selectedSubcategory =
+        btn.dataset.subcategory === "all"
+          ? null
+          : btn.dataset.subcategory;
+
+      renderProducts();
+    });
+  });
+}
+
+function getFilteredProducts() {
+  let list = [...products];
+
+  if (selectedCategory) {
+    const subIds = subcategories
+      .filter(x => String(x.category_id) === String(selectedCategory))
+      .map(x => String(x.id));
+
+    list = list.filter(p =>
+      subIds.includes(String(p.subcategory_id))
+    );
+  }
+
+  if (selectedSubcategory) {
+    list = list.filter(
+      p => String(p.subcategory_id) === String(selectedSubcategory)
+    );
+  }
+
+  return list;
+}
+
+function renderProducts() {
+  const container =
+    $("products") ||
+    $("productList") ||
+    document.querySelector(".products");
+
+  if (!container) return;
+
+  const list = getFilteredProducts();
+
+  if (!list.length) {
+    container.innerHTML = `
+      <div style="
+        padding:30px;
+        text-align:center;
+        color:#777;
+      ">
+        محصولی در این بخش پیدا نشد.
       </div>
     `;
     return;
   }
 
-  box.innerHTML = list.map(product => {
-    const { cat, sub } = getCategory(product);
+  container.innerHTML = list.map(productCard).join("");
 
-    const image = product.image_url
-      ? `
-        <div class="product-photo">
-          <img
-            src="${escapeHTML(product.image_url)}"
-            alt="${escapeHTML(product.name)}"
-            loading="lazy"
-          >
-        </div>
-      `
-      : `
-        <div class="product-photo no-image">
-          <span>☕</span>
-        </div>
-      `;
-
-    const description = product.description
-      ? `<p class="product-description">${escapeHTML(product.description)}</p>`
-      : '';
-
-    const ingredients = product.ingredients
-      ? `
-        <p class="product-ingredients">
-          (${escapeHTML(product.ingredients)})
-        </p>
-      `
-      : '';
-
-    const tags = `
-      ${product.is_special ? '<span class="tag">پیشنهاد امروز</span>' : ''}
-      ${product.is_best_seller ? '<span class="tag">پرفروش</span>' : ''}
-    `;
-
-    return `
-      <article
-        class="card product-card"
-        data-product-id="${escapeHTML(product.id)}"
-      >
-
-        ${image}
-
-        <div class="product-content">
-
-          <div class="product-top">
-
-            <div class="product-title-area">
-
-              <h3>${escapeHTML(product.name)}</h3>
-
-              ${description}
-
-              ${ingredients}
-
-              <small class="product-category">
-                ${escapeHTML(sub?.name || cat?.name || '')}
-              </small>
-
-            </div>
-
-            <div class="product-price">
-              ${formatPrice(product.price)}
-              <small>تومان</small>
-            </div>
-
-          </div>
-
-          <div class="product-tags">
-            ${tags}
-          </div>
-
-        </div>
-
-      </article>
-    `;
-  }).join('');
-
-  box.querySelectorAll('.product-card').forEach(card => {
-    card.addEventListener('click', () => {
-      openProduct(card.dataset.productId);
+  container.querySelectorAll("[data-product-id]")
+    .forEach(card => {
+      card.addEventListener("click", () => {
+        const id = card.dataset.productId;
+        openProduct(id);
+      });
     });
-  });
+}
+
+function productCard(product) {
+  const image = product.image_url
+    ? `<img
+        src="${escapeHTML(product.image_url)}"
+        alt="${escapeHTML(product.name)}"
+        loading="lazy"
+        style="width:100%;height:190px;object-fit:cover;border-radius:14px 14px 0 0;"
+      >`
+    : `
+      <div style="
+        height:190px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:#eee5de;
+        font-size:45px;
+        border-radius:14px 14px 0 0;
+      ">☕</div>
+    `;
+
+  return `
+    <article
+      class="product-card"
+      data-product-id="${escapeHTML(product.id)}"
+      style="cursor:pointer;overflow:hidden;"
+    >
+      ${image}
+
+      <div style="padding:14px;">
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          gap:8px;
+          align-items:flex-start;
+        ">
+          <h3 style="margin:0;">
+            ${escapeHTML(product.name)}
+          </h3>
+
+          <strong style="white-space:nowrap;">
+            ${formatPrice(product.price)}
+          </strong>
+        </div>
+
+        ${
+          product.description
+            ? `<p style="color:#777;">
+                ${escapeHTML(product.description)}
+              </p>`
+            : ""
+        }
+
+        ${
+          product.ingredients
+            ? `<div style="font-size:13px;color:#777;">
+                (${escapeHTML(product.ingredients)})
+              </div>`
+            : ""
+        }
+
+        <div style="margin-top:8px;">
+          ${
+            product.is_special
+              ? `<span class="badge">⭐ پیشنهاد امروز</span>`
+              : ""
+          }
+
+          ${
+            product.is_best_seller
+              ? `<span class="badge">🔥 پرفروش</span>`
+              : ""
+          }
+        </div>
+      </div>
+    </article>
+  `;
 }
 
 function renderSpecials() {
-  const box = document.querySelector('#specials');
+  const container =
+    $("specials") ||
+    $("todaySpecials") ||
+    document.querySelector(".specials");
 
-  if (!box) return;
+  if (!container) return;
 
-  const specialProducts = products
-    .filter(product => product.is_special)
-    .slice(0, 4);
+  const specials = products.filter(p => p.is_special);
 
-  if (!specialProducts.length) {
-    box.innerHTML = `
-      <p>پیشنهاد ویژه‌ای ثبت نشده است.</p>
-    `;
+  if (!specials.length) {
+    container.innerHTML = "";
     return;
   }
 
-  box.innerHTML = specialProducts.map(product => `
-    <div
-      class="special-item"
-      data-product-id="${escapeHTML(product.id)}"
-    >
-      <strong>${escapeHTML(product.name)}</strong>
-      <span>${formatPrice(product.price)} تومان</span>
+  container.innerHTML = `
+    <div style="margin-bottom:10px;">
+      <h2>⭐ پیشنهاد امروز</h2>
     </div>
-  `).join('');
+    <div class="special-products">
+      ${specials.map(productCard).join("")}
+    </div>
+  `;
 
-  box.querySelectorAll('.special-item').forEach(item => {
-    item.addEventListener('click', () => {
-      openProduct(item.dataset.productId);
+  container.querySelectorAll("[data-product-id]")
+    .forEach(card => {
+      card.addEventListener("click", () => {
+        openProduct(card.dataset.productId);
+      });
     });
-  });
 }
 
 function openProduct(id) {
   const product = products.find(
-    x => String(x.id) === String(id)
+    p => String(p.id) === String(id)
   );
 
   if (!product) return;
 
-  const { cat, sub } = getCategory(product);
+  const modal =
+    $("productModal") ||
+    $("modal");
 
-  const image = product.image_url
-    ? `
-      <img
-        class="detail-img"
-        src="${escapeHTML(product.image_url)}"
-        alt="${escapeHTML(product.name)}"
-      >
-    `
-    : '';
+  if (!modal) {
+    showProductFallback(product);
+    return;
+  }
 
-  const description = product.description
-    ? `<p>${escapeHTML(product.description)}</p>`
-    : '';
+  const content =
+    modal.querySelector(".modal-content") ||
+    modal;
 
-  const ingredients = product.ingredients
-    ? `
-      <div class="detail-section">
-        <strong>مواد تشکیل‌دهنده</strong>
-        <p>(${escapeHTML(product.ingredients)})</p>
-      </div>
-    `
-    : '';
+  content.innerHTML = `
+    <button
+      onclick="closeProduct()"
+      style="float:left;background:none;color:inherit;font-size:24px;"
+    >×</button>
 
-  const allergens = product.allergens
-    ? `
-      <div class="detail-section">
-        <strong>آلرژن‌ها</strong>
-        <p>${escapeHTML(product.allergens)}</p>
-      </div>
-    `
-    : '';
-
-  const detail = document.querySelector('#detail');
-
-  if (!detail) return;
-
-  detail.innerHTML = `
-    ${image}
-
-    <small>
-      ${escapeHTML(sub?.name || cat?.name || '')}
-    </small>
+    ${
+      product.image_url
+        ? `<img
+            src="${escapeHTML(product.image_url)}"
+            style="width:100%;max-height:320px;object-fit:cover;border-radius:14px;"
+          >`
+        : ""
+    }
 
     <h2>${escapeHTML(product.name)}</h2>
 
-    <div class="detail-price">
-      ${formatPrice(product.price)} تومان
-    </div>
+    <h3>${formatPrice(product.price)}</h3>
 
-    ${description}
+    ${
+      product.description
+        ? `<p>${escapeHTML(product.description)}</p>`
+        : ""
+    }
 
-    ${ingredients}
+    ${
+      product.ingredients
+        ? `<p><strong>مواد تشکیل‌دهنده:</strong><br>
+          ${escapeHTML(product.ingredients)}
+        </p>`
+        : ""
+    }
 
-    ${allergens}
+    ${
+      product.allergens
+        ? `<p><strong>حساسیت‌زا:</strong><br>
+          ${escapeHTML(product.allergens)}
+        </p>`
+        : ""
+    }
   `;
 
-  document.querySelector('#modal')?.classList.add('open');
+  modal.classList.remove("hidden");
+  modal.style.display = "flex";
 }
 
-function closeModal() {
-  document.querySelector('#modal')?.classList.remove('open');
+function closeProduct() {
+  const modal =
+    $("productModal") ||
+    $("modal");
+
+  if (!modal) return;
+
+  modal.classList.add("hidden");
+  modal.style.display = "none";
 }
 
-function go(id) {
-  document.getElementById(id)?.scrollIntoView({
-    behavior: 'smooth'
+function showProductFallback(product) {
+  alert(
+    `${product.name}\n\n` +
+    `${formatPrice(product.price)}\n\n` +
+    `${product.description || ""}\n\n` +
+    `${product.ingredients || ""}`
+  );
+}
+
+function setupSearch() {
+  const search =
+    $("search") ||
+    $("searchInput") ||
+    document.querySelector('input[type="search"]');
+
+  if (!search || search.dataset.ready) return;
+
+  search.dataset.ready = "1";
+
+  search.addEventListener("input", () => {
+    const query = search.value.trim().toLowerCase();
+
+    const container =
+      $("products") ||
+      $("productList") ||
+      document.querySelector(".products");
+
+    if (!container) return;
+
+    if (!query) {
+      renderProducts();
+      return;
+    }
+
+    const result = products.filter(product => {
+      const text = [
+        product.name,
+        product.name_en,
+        product.description,
+        product.ingredients
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return text.includes(query);
+    });
+
+    container.innerHTML = result.length
+      ? result.map(productCard).join("")
+      : `
+        <div style="
+          padding:30px;
+          text-align:center;
+          color:#777;
+        ">
+          چیزی پیدا نشد.
+        </div>
+      `;
+
+    container.querySelectorAll("[data-product-id]")
+      .forEach(card => {
+        card.addEventListener("click", () => {
+          openProduct(card.dataset.productId);
+        });
+      });
   });
 }
 
-function map() {
-  const url =
-    cafe.map_url ||
-    'https://www.google.com/maps/search/?api=1&query=' +
-    encodeURIComponent(
-      cafe.address || 'بلوار امام حسین کافه بلوط'
-    );
-
-  window.open(url, '_blank');
-}
-
-function formatPrice(value) {
-  return Number(value || 0).toLocaleString('fa-IR');
-}
-
-function escapeHTML(value) {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
+document.addEventListener("DOMContentLoaded", () => {
+  loadMenu();
+});
