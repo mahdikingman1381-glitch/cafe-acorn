@@ -4,621 +4,1943 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>مدیریت کافه بلوط</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#f5f1ed;color:#33241e;font-family:Tahoma,Arial,sans-serif}
-header{background:#432d23;color:white;padding:22px;text-align:center}
-main{max-width:1000px;margin:auto;padding:16px}
-.card{background:white;padding:18px;margin:14px 0;border-radius:18px;box-shadow:0 3px 15px #0001}
-input,textarea,select{width:100%;padding:12px;margin:6px 0 12px;border:1px solid #ddd;border-radius:10px;font:inherit}
-button{border:0;border-radius:10px;padding:11px 17px;margin:4px;cursor:pointer;background:#432d23;color:white;font:inherit}
-button.red{background:#a33}
-button.green{background:#39734a}
-nav{display:flex;gap:6px;overflow:auto;margin:12px 0}
-nav button{white-space:nowrap;background:#806455}
-nav button.active{background:#432d23}
-.hidden{display:none}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
-.item{border:1px solid #eee;border-radius:14px;padding:14px}
-img{max-width:100%;border-radius:12px}
-.small{color:#777;font-size:13px}
-label{display:block;font-weight:bold;margin-top:5px}
-#status{padding:10px;border-radius:10px;background:#eee;margin:10px 0}
+*{
+  box-sizing:border-box
+}
+
+body{
+  margin:0;
+  background:#f5f1ed;
+  color:#33241e;
+  font-family:Tahoma,Arial,sans-serif
+}
+
+header{
+  background:#432d23;
+  color:white;
+  padding:22px;
+  text-align:center
+}
+
+header h1{
+  margin:0 0 12px
+}
+
+main{
+  max-width:1000px;
+  margin:auto;
+  padding:16px
+}
+
+.card{
+  background:white;
+  padding:18px;
+  margin:14px 0;
+  border-radius:18px;
+  box-shadow:0 3px 15px #0001
+}
+
+input,
+textarea,
+select{
+  width:100%;
+  padding:12px;
+  margin:6px 0 12px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  font:inherit;
+  background:white
+}
+
+textarea{
+  min-height:90px;
+  resize:vertical
+}
+
+button{
+  border:0;
+  border-radius:10px;
+  padding:11px 17px;
+  margin:4px;
+  cursor:pointer;
+  background:#432d23;
+  color:white;
+  font:inherit
+}
+
+button.red{
+  background:#a33
+}
+
+button.green{
+  background:#39734a
+}
+
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed
+}
+
+nav{
+  display:flex;
+  gap:6px;
+  overflow:auto;
+  margin:12px 0
+}
+
+nav button{
+  white-space:nowrap;
+  background:#806455
+}
+
+nav button.active{
+  background:#432d23
+}
+
+.hidden{
+  display:none
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:12px
+}
+
+.item{
+  border:1px solid #eee;
+  border-radius:14px;
+  padding:14px;
+  overflow:hidden
+}
+
+.item img{
+  display:block;
+  width:100%;
+  max-width:100%;
+  max-height:240px;
+  object-fit:cover;
+  border-radius:12px;
+  margin-bottom:12px
+}
+
+.small{
+  color:#777;
+  font-size:13px;
+  line-height:1.8
+}
+
+label{
+  display:block;
+  font-weight:bold;
+  margin-top:5px
+}
+
+#status{
+  padding:10px;
+  border-radius:10px;
+  background:#eee;
+  margin:10px 0
+}
+
+#loginMsg{
+  margin-top:10px;
+  color:#a33;
+  line-height:1.8
+}
+
+input[type="checkbox"]{
+  width:auto;
+  margin-left:8px
+}
+
+@media(max-width:600px){
+
+  header{
+    padding:28px 14px
+  }
+
+  header h1{
+    font-size:28px
+  }
+
+  main{
+    padding:10px
+  }
+
+  .card{
+    padding:14px;
+    border-radius:16px
+  }
+
+  .grid{
+    grid-template-columns:1fr
+  }
+
+  button{
+    padding:11px 14px
+  }
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<h1>🌳 مدیریت کافه بلوط</h1>
-<div>پنل مدیریت منوی کافه</div>
+  <h1>🌳 مدیریت کافه بلوط</h1>
+  <div>پنل مدیریت منوی کافه</div>
 </header>
 
 <main>
 
+<!-- LOGIN -->
 <div id="loginBox" class="card">
-<h2>ورود مدیر</h2>
-<input id="email" type="email" placeholder="ایمیل مدیر">
-<input id="password" type="password" placeholder="رمز عبور">
-<button onclick="login()">ورود</button>
-<button onclick="resetPassword()">بازیابی رمز</button>
-<div id="loginMsg"></div>
+
+  <h2>ورود مدیر</h2>
+
+  <input
+    id="email"
+    type="email"
+    placeholder="ایمیل مدیر"
+    autocomplete="username"
+  >
+
+  <input
+    id="password"
+    type="password"
+    placeholder="رمز عبور"
+    autocomplete="current-password"
+  >
+
+  <button onclick="login()">ورود</button>
+
+  <button onclick="resetPassword()">بازیابی رمز</button>
+
+  <div id="loginMsg"></div>
+
 </div>
 
+
+<!-- PANEL -->
 <div id="panel" class="hidden">
 
-<div id="status">در حال آماده‌سازی...</div>
+  <div id="status">در حال آماده‌سازی...</div>
 
-<nav>
-<button onclick="showTab('products')" id="bProducts">محصولات</button>
-<button onclick="showTab('categories')" id="bCategories">دسته‌ها</button>
-<button onclick="showTab('subs')" id="bSubs">زیر‌دسته‌ها</button>
-<button onclick="showTab('settings')" id="bSettings">اطلاعات کافه</button>
-<button onclick="logout()">خروج</button>
-</nav>
+  <nav>
 
-<!-- PRODUCTS -->
-<section id="products" class="tab">
+    <button
+      onclick="showTab('products')"
+      id="bProducts"
+    >
+      محصولات
+    </button>
 
-<div class="card">
-<h2>افزودن / ویرایش محصول</h2>
+    <button
+      onclick="showTab('categories')"
+      id="bCategories"
+    >
+      دسته‌ها
+    </button>
 
-<input type="hidden" id="productId">
+    <button
+      onclick="showTab('subs')"
+      id="bSubs"
+    >
+      زیر‌دسته‌ها
+    </button>
 
-<label>نام محصول</label>
-<input id="pName" placeholder="مثلاً لاته">
+    <button
+      onclick="showTab('settings')"
+      id="bSettings"
+    >
+      اطلاعات کافه
+    </button>
 
-<label>نام انگلیسی</label>
-<input id="pNameEn" placeholder="Latte">
+    <button onclick="logout()">
+      خروج
+    </button>
 
-<label>قیمت</label>
-<input id="pPrice" type="number" placeholder="210">
+  </nav>
 
-<label>توضیحات کوتاه</label>
-<textarea id="pDescription" placeholder="توضیح جذاب درباره محصول"></textarea>
 
-<label>مواد تشکیل‌دهنده</label>
-<textarea id="pIngredients" placeholder="مثلاً شیر، قهوه، سیروپ"></textarea>
+  <!-- PRODUCTS -->
+  <section id="products" class="tab">
 
-<label>مواد حساسیت‌زا</label>
-<input id="pAllergens" placeholder="مثلاً شیر، آجیل">
+    <div class="card">
 
-<label>زیر‌دسته</label>
-<select id="pSub"></select>
+      <h2>افزودن / ویرایش محصول</h2>
 
-<label>ترتیب نمایش</label>
-<input id="pSort" type="number" value="0">
+      <input
+        type="hidden"
+        id="productId"
+      >
 
-<label>تصویر محصول</label>
-<input id="pImage" type="file" accept="image/*">
+      <label>نام محصول</label>
 
-<label>
-<input id="pAvailable" type="checkbox" checked>
- موجود است
-</label>
+      <input
+        id="pName"
+        placeholder="مثلاً لاته"
+      >
 
-<label>
-<input id="pSpecial" type="checkbox">
- پیشنهاد امروز
-</label>
 
-<label>
-<input id="pBest" type="checkbox">
- پرفروش
-</label>
+      <label>نام انگلیسی</label>
 
-<button class="green" onclick="saveProduct()">ذخیره محصول</button>
-<button onclick="clearProduct()">پاک کردن فرم</button>
+      <input
+        id="pNameEn"
+        placeholder="Latte"
+      >
+
+
+      <label>قیمت</label>
+
+      <input
+        id="pPrice"
+        type="number"
+        placeholder="210"
+      >
+
+
+      <label>توضیحات کوتاه</label>
+
+      <textarea
+        id="pDescription"
+        placeholder="توضیح جذاب درباره محصول"
+      ></textarea>
+
+
+      <label>مواد تشکیل‌دهنده</label>
+
+      <textarea
+        id="pIngredients"
+        placeholder="مثلاً شیر، قهوه، سیروپ"
+      ></textarea>
+
+
+      <label>مواد حساسیت‌زا</label>
+
+      <input
+        id="pAllergens"
+        placeholder="مثلاً شیر، آجیل"
+      >
+
+
+      <label>زیر‌دسته</label>
+
+      <select id="pSub"></select>
+
+
+      <label>ترتیب نمایش</label>
+
+      <input
+        id="pSort"
+        type="number"
+        value="0"
+      >
+
+
+      <label>تصویر محصول</label>
+
+      <input
+        id="pImage"
+        type="file"
+        accept="image/*"
+      >
+
+      <div class="small">
+        تصویر قبل از آپلود به صورت خودکار فشرده و به JPEG تبدیل می‌شود.
+      </div>
+
+
+      <label>
+        <input
+          id="pAvailable"
+          type="checkbox"
+          checked
+        >
+        موجود است
+      </label>
+
+
+      <label>
+        <input
+          id="pSpecial"
+          type="checkbox"
+        >
+        پیشنهاد امروز
+      </label>
+
+
+      <label>
+        <input
+          id="pBest"
+          type="checkbox"
+        >
+        پرفروش
+      </label>
+
+
+      <button
+        class="green"
+        onclick="saveProduct()"
+      >
+        ذخیره محصول
+      </button>
+
+
+      <button
+        onclick="clearProduct()"
+      >
+        پاک کردن فرم
+      </button>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>محصولات</h2>
+
+      <div
+        id="productsList"
+        class="grid"
+      ></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- CATEGORIES -->
+  <section
+    id="categories"
+    class="tab hidden"
+  >
+
+    <div class="card">
+
+      <h2>دسته‌بندی‌ها</h2>
+
+      <input
+        id="catName"
+        placeholder="نام دسته"
+      >
+
+      <input
+        id="catNameEn"
+        placeholder="نام انگلیسی"
+      >
+
+      <input
+        id="catSort"
+        type="number"
+        value="0"
+      >
+
+      <button onclick="saveCategory()">
+        افزودن دسته
+      </button>
+
+    </div>
+
+
+    <div class="card">
+
+      <div
+        id="categoriesList"
+        class="grid"
+      ></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- SUBCATEGORIES -->
+  <section
+    id="subs"
+    class="tab hidden"
+  >
+
+    <div class="card">
+
+      <h2>زیر‌دسته‌ها</h2>
+
+      <select id="subCat"></select>
+
+      <input
+        id="subName"
+        placeholder="نام زیر‌دسته"
+      >
+
+      <input
+        id="subNameEn"
+        placeholder="نام انگلیسی"
+      >
+
+      <input
+        id="subSort"
+        type="number"
+        value="0"
+      >
+
+      <button onclick="saveSub()">
+        افزودن زیر‌دسته
+      </button>
+
+    </div>
+
+
+    <div class="card">
+
+      <div
+        id="subsList"
+        class="grid"
+      ></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- SETTINGS -->
+  <section
+    id="settings"
+    class="tab hidden"
+  >
+
+    <div class="card">
+
+      <h2>اطلاعات کافه</h2>
+
+
+      <label>نام کافه</label>
+
+      <input id="sName">
+
+
+      <label>شعار</label>
+
+      <input id="sTagline">
+
+
+      <label>آدرس</label>
+
+      <input id="sAddress">
+
+
+      <label>ساعات کاری</label>
+
+      <input id="sHours">
+
+
+      <label>اینستاگرام</label>
+
+      <input id="sInstagram">
+
+
+      <label>لینک نقشه</label>
+
+      <input id="sMap">
+
+
+      <button
+        class="green"
+        onclick="saveSettings()"
+      >
+        ذخیره اطلاعات
+      </button>
+
+    </div>
+
+  </section>
+
 </div>
 
-<div class="card">
-<h2>محصولات</h2>
-<div id="productsList" class="grid"></div>
-</div>
-
-</section>
-
-<!-- CATEGORIES -->
-<section id="categories" class="tab hidden">
-
-<div class="card">
-<h2>دسته‌بندی‌ها</h2>
-<input id="catName" placeholder="نام دسته">
-<input id="catNameEn" placeholder="نام انگلیسی">
-<input id="catSort" type="number" value="0">
-<button onclick="saveCategory()">افزودن دسته</button>
-</div>
-
-<div class="card">
-<div id="categoriesList" class="grid"></div>
-</div>
-
-</section>
-
-<!-- SUBCATEGORIES -->
-<section id="subs" class="tab hidden">
-
-<div class="card">
-<h2>زیر‌دسته‌ها</h2>
-
-<select id="subCat"></select>
-<input id="subName" placeholder="نام زیر‌دسته">
-<input id="subNameEn" placeholder="نام انگلیسی">
-<input id="subSort" type="number" value="0">
-
-<button onclick="saveSub()">افزودن زیر‌دسته</button>
-</div>
-
-<div class="card">
-<div id="subsList" class="grid"></div>
-</div>
-
-</section>
-
-<!-- SETTINGS -->
-<section id="settings" class="tab hidden">
-
-<div class="card">
-<h2>اطلاعات کافه</h2>
-
-<label>نام کافه</label>
-<input id="sName">
-
-<label>شعار</label>
-<input id="sTagline">
-
-<label>آدرس</label>
-<input id="sAddress">
-
-<label>ساعات کاری</label>
-<input id="sHours">
-
-<label>اینستاگرام</label>
-<input id="sInstagram">
-
-<label>لینک نقشه</label>
-<input id="sMap">
-
-<button class="green" onclick="saveSettings()">ذخیره اطلاعات</button>
-</div>
-
-</section>
-
-</div>
 </main>
+
 
 <script src="supabase-config.js"></script>
 
 <script>
-const cfg=window.CAFE_ACORN_SUPABASE||{};
-const sb=supabase.createClient(cfg.url,cfg.anonKey||cfg.key);
-const BUCKET=cfg.bucket||"product-image";
 
-let categories=[];
-let subs=[];
-let products=[];
-let settingsId=null;
+const cfg = window.CAFE_ACORN_SUPABASE || {};
 
-const $=id=>document.getElementById(id);
+const sb = supabase.createClient(
+  cfg.url,
+  cfg.anonKey || cfg.key
+);
 
-function msg(t){
-  $("status").textContent=t;
+const BUCKET =
+  cfg.bucket || "product-image";
+
+
+let categories = [];
+let subs = [];
+let products = [];
+let settingsId = null;
+
+
+const $ = id =>
+  document.getElementById(id);
+
+
+/* STATUS */
+
+function msg(text){
+
+  const el = $("status");
+
+  if(el){
+    el.textContent = text;
+  }
+
 }
 
+
+/* ESCAPE HTML */
+
 function esc(x){
-  return String(x??"")
+
+  return String(x ?? "")
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;");
+
 }
+
+
+/* LOGIN */
 
 async function login(){
-  const email=$("email").value.trim();
-  const password=$("password").value;
 
-  const {error}=await sb.auth.signInWithPassword({email,password});
+  const email =
+    $("email").value.trim();
+
+  const password =
+    $("password").value;
+
+
+  $("loginMsg").textContent =
+    "در حال ورود...";
+
+
+  const {error} =
+    await sb.auth.signInWithPassword({
+      email,
+      password
+    });
+
 
   if(error){
-    $("loginMsg").textContent=error.message;
+
+    $("loginMsg").textContent =
+      error.message;
+
     return;
   }
+
+
+  $("loginMsg").textContent = "";
 
   await start();
+
 }
 
+
+/* PASSWORD RESET */
+
 async function resetPassword(){
-  const email=$("email").value.trim();
+
+  const email =
+    $("email").value.trim();
+
 
   if(!email){
-    $("loginMsg").textContent="ابتدا ایمیل را وارد کن.";
+
+    $("loginMsg").textContent =
+      "ابتدا ایمیل را وارد کن.";
+
     return;
   }
 
-  const {error}=await sb.auth.resetPasswordForEmail(email,{
-    redirectTo:location.href
-  });
 
-  $("loginMsg").textContent=
-    error?error.message:"لینک بازیابی ارسال شد.";
+  const {error} =
+    await sb.auth.resetPasswordForEmail(
+      email,
+      {
+        redirectTo:location.href
+      }
+    );
+
+
+  $("loginMsg").textContent =
+    error
+      ? error.message
+      : "لینک بازیابی ارسال شد.";
+
 }
+
+
+/* LOGOUT */
 
 async function logout(){
+
   await sb.auth.signOut();
+
   location.reload();
+
 }
+
+
+/* START */
 
 async function start(){
+
   $("loginBox").classList.add("hidden");
+
   $("panel").classList.remove("hidden");
+
   await loadAll();
+
   showTab("products");
+
 }
+
+
+/* LOAD ALL */
 
 async function loadAll(){
+
   msg("در حال دریافت اطلاعات...");
 
-  const c=await sb.from("categories")
-    .select("*")
-    .order("sort_order");
 
-  const s=await sb.from("subcategories")
-    .select("*")
-    .order("sort_order");
+  const c =
+    await sb
+      .from("categories")
+      .select("*")
+      .order("sort_order");
 
-  const p=await sb.from("products")
-    .select("*")
-    .order("sort_order");
 
-  const st=await sb.from("cafe_settings")
-    .select("*")
-    .limit(1)
-    .maybeSingle();
+  const s =
+    await sb
+      .from("subcategories")
+      .select("*")
+      .order("sort_order");
 
-  if(c.error)msg(c.error.message);
-  if(s.error)msg(s.error.message);
-  if(p.error)msg(p.error.message);
 
-  categories=c.data||[];
-  subs=s.data||[];
-  products=p.data||[];
+  const p =
+    await sb
+      .from("products")
+      .select("*")
+      .order("sort_order");
 
-  if(st.data){
-    settingsId=st.data.id;
-    $("sName").value=st.data.cafe_name||"";
-    $("sTagline").value=st.data.tagline||"";
-    $("sAddress").value=st.data.address||"";
-    $("sHours").value=st.data.opening_hours||"";
-    $("sInstagram").value=st.data.instagram||"";
-    $("sMap").value=st.data.map_url||"";
+
+  const st =
+    await sb
+      .from("cafe_settings")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
+
+
+  if(c.error){
+    msg(c.error.message);
   }
 
+
+  if(s.error){
+    msg(s.error.message);
+  }
+
+
+  if(p.error){
+    msg(p.error.message);
+  }
+
+
+  categories =
+    c.data || [];
+
+
+  subs =
+    s.data || [];
+
+
+  products =
+    p.data || [];
+
+
+  if(st.data){
+
+    settingsId =
+      st.data.id;
+
+
+    $("sName").value =
+      st.data.cafe_name || "";
+
+
+    $("sTagline").value =
+      st.data.tagline || "";
+
+
+    $("sAddress").value =
+      st.data.address || "";
+
+
+    $("sHours").value =
+      st.data.opening_hours || "";
+
+
+    $("sInstagram").value =
+      st.data.instagram || "";
+
+
+    $("sMap").value =
+      st.data.map_url || "";
+
+  }
+
+
   fillSelects();
+
   renderAll();
+
   msg("اطلاعات آماده است.");
+
 }
+
+
+/* SELECTS */
 
 function fillSelects(){
 
-  $("pSub").innerHTML=
-    '<option value="">بدون زیر‌دسته</option>'+
-    subs.map(x=>
-      `<option value="${x.id}">${esc(x.name)}</option>`
+  $("pSub").innerHTML =
+    '<option value="">بدون زیر‌دسته</option>' +
+
+    subs.map(x =>
+      `<option value="${x.id}">
+        ${esc(x.name)}
+      </option>`
     ).join("");
 
-  $("subCat").innerHTML=
-    '<option value="">انتخاب دسته</option>'+
-    categories.map(x=>
-      `<option value="${x.id}">${esc(x.name)}</option>`
+
+  $("subCat").innerHTML =
+    '<option value="">انتخاب دسته</option>' +
+
+    categories.map(x =>
+      `<option value="${x.id}">
+        ${esc(x.name)}
+      </option>`
     ).join("");
+
 }
+
+
+/* RENDER */
 
 function renderAll(){
 
-  $("productsList").innerHTML=products.map(p=>{
+  $("productsList").innerHTML =
+    products.map(p => {
 
-    const sub=subs.find(x=>x.id===p.subcategory_id);
+      const sub =
+        subs.find(
+          x => x.id === p.subcategory_id
+        );
 
-    return `
-    <div class="item">
-      ${p.image_url?`<img src="${esc(p.image_url)}">`:""}
-      <h3>${esc(p.name)}</h3>
-      <div>${p.price!=null?Number(p.price).toLocaleString("fa-IR")+" تومان":"بدون قیمت"}</div>
-      <div class="small">${esc(sub?.name||"بدون زیر‌دسته")}</div>
-      <div class="small">
-        ${p.is_available?"✅ موجود":"❌ ناموجود"}
-        ${p.is_special?" ⭐ پیشنهاد امروز":""}
-        ${p.is_best_seller?" 🔥 پرفروش":""}
+
+      return `
+
+      <div class="item">
+
+        ${
+          p.image_url
+          ?
+          `<img src="${esc(p.image_url)}"
+                loading="lazy"
+                alt="${esc(p.name)}">`
+          :
+          ""
+        }
+
+        <h3>
+          ${esc(p.name)}
+        </h3>
+
+        <div>
+          ${
+            p.price != null
+            ?
+            Number(p.price)
+              .toLocaleString("fa-IR")
+              + " تومان"
+            :
+            "بدون قیمت"
+          }
+        </div>
+
+        <div class="small">
+          ${esc(sub?.name || "بدون زیر‌دسته")}
+        </div>
+
+        <div class="small">
+
+          ${
+            p.is_available
+            ? "✅ موجود"
+            : "❌ ناموجود"
+          }
+
+          ${
+            p.is_special
+            ? " ⭐ پیشنهاد امروز"
+            : ""
+          }
+
+          ${
+            p.is_best_seller
+            ? " 🔥 پرفروش"
+            : ""
+          }
+
+        </div>
+
+        <button
+          onclick="editProduct('${p.id}')"
+        >
+          ویرایش
+        </button>
+
+        <button
+          class="red"
+          onclick="deleteProduct('${p.id}')"
+        >
+          حذف
+        </button>
+
       </div>
-      <button onclick="editProduct('${p.id}')">ویرایش</button>
-      <button class="red" onclick="deleteProduct('${p.id}')">حذف</button>
-    </div>`;
-  }).join("");
 
-  $("categoriesList").innerHTML=categories.map(c=>`
-    <div class="item">
-      <h3>${esc(c.name)}</h3>
-      <div class="small">${esc(c.name_en||"")}</div>
-      <button class="red" onclick="deleteCategory('${c.id}')">حذف</button>
-    </div>
-  `).join("");
+      `;
 
-  $("subsList").innerHTML=subs.map(s=>{
-    const c=categories.find(x=>x.id===s.category_id);
-    return `
-    <div class="item">
-      <h3>${esc(s.name)}</h3>
-      <div class="small">دسته: ${esc(c?.name||"")}</div>
-      <button class="red" onclick="deleteSub('${s.id}')">حذف</button>
-    </div>`;
-  }).join("");
+    }).join("");
+
+
+  $("categoriesList").innerHTML =
+    categories.map(c => `
+
+      <div class="item">
+
+        <h3>
+          ${esc(c.name)}
+        </h3>
+
+        <div class="small">
+          ${esc(c.name_en || "")}
+        </div>
+
+        <button
+          class="red"
+          onclick="deleteCategory('${c.id}')"
+        >
+          حذف
+        </button>
+
+      </div>
+
+    `).join("");
+
+
+  $("subsList").innerHTML =
+    subs.map(s => {
+
+      const c =
+        categories.find(
+          x => x.id === s.category_id
+        );
+
+
+      return `
+
+      <div class="item">
+
+        <h3>
+          ${esc(s.name)}
+        </h3>
+
+        <div class="small">
+          دسته:
+          ${esc(c?.name || "")}
+        </div>
+
+        <button
+          class="red"
+          onclick="deleteSub('${s.id}')"
+        >
+          حذف
+        </button>
+
+      </div>
+
+      `;
+
+    }).join("");
+
 }
+
+
+/* TABS */
 
 function showTab(id){
 
-  document.querySelectorAll(".tab")
-    .forEach(x=>x.classList.add("hidden"));
+  document
+    .querySelectorAll(".tab")
+    .forEach(x =>
+      x.classList.add("hidden")
+    );
+
 
   $(id).classList.remove("hidden");
 
-  document.querySelectorAll("nav button")
-    .forEach(x=>x.classList.remove("active"));
 
-  const b={
+  document
+    .querySelectorAll("nav button")
+    .forEach(x =>
+      x.classList.remove("active")
+    );
+
+
+  const b = {
+
     products:"bProducts",
+
     categories:"bCategories",
+
     subs:"bSubs",
+
     settings:"bSettings"
+
   }[id];
 
-  if(b)$(b).classList.add("active");
+
+  if(b){
+    $(b).classList.add("active");
+  }
+
 }
+
+
+/* IMAGE COMPRESSION */
+
+async function compressImage(file){
+
+  return new Promise(
+    (resolve,reject) => {
+
+      const reader =
+        new FileReader();
+
+
+      reader.onload = () => {
+
+        const img =
+          new Image();
+
+
+        img.onload = () => {
+
+          const maxSize = 1600;
+
+
+          let width =
+            img.naturalWidth ||
+            img.width;
+
+
+          let height =
+            img.naturalHeight ||
+            img.height;
+
+
+          if(!width || !height){
+
+            reject(
+              new Error(
+                "تصویر قابل خواندن نیست."
+              )
+            );
+
+            return;
+          }
+
+
+          if(
+            width > maxSize ||
+            height > maxSize
+          ){
+
+            const scale =
+              Math.min(
+                maxSize / width,
+                maxSize / height
+              );
+
+
+            width =
+              Math.round(
+                width * scale
+              );
+
+
+            height =
+              Math.round(
+                height * scale
+              );
+
+          }
+
+
+          const canvas =
+            document.createElement(
+              "canvas"
+            );
+
+
+          canvas.width =
+            width;
+
+
+          canvas.height =
+            height;
+
+
+          const ctx =
+            canvas.getContext(
+              "2d"
+            );
+
+
+          if(!ctx){
+
+            reject(
+              new Error(
+                "مرورگر امکان پردازش تصویر را ندارد."
+              )
+            );
+
+            return;
+          }
+
+
+          ctx.drawImage(
+            img,
+            0,
+            0,
+            width,
+            height
+          );
+
+
+          canvas.toBlob(
+            blob => {
+
+              if(!blob){
+
+                reject(
+                  new Error(
+                    "فشرده‌سازی تصویر انجام نشد."
+                  )
+                );
+
+                return;
+              }
+
+
+              resolve(blob);
+
+            },
+            "image/jpeg",
+            0.82
+          );
+
+        };
+
+
+        img.onerror = () => {
+
+          reject(
+            new Error(
+              "مرورگر نتوانست تصویر را بخواند."
+            )
+          );
+
+        };
+
+
+        img.src =
+          reader.result;
+
+      };
+
+
+      reader.onerror = () => {
+
+        reject(
+          new Error(
+            "خواندن فایل تصویر ناموفق بود."
+          )
+        );
+
+      };
+
+
+      reader.readAsDataURL(file);
+
+    }
+  );
+
+}
+
+
+/* SAVE PRODUCT */
 
 async function saveProduct(){
 
-  const id=$("productId").value;
+  const id =
+    $("productId").value;
 
-  let imageUrl=null;
 
-  const file=$("pImage").files[0];
+  let imageUrl = null;
+
+
+  const file =
+    $("pImage").files[0];
+
+
+  /*
+   * IMAGE UPLOAD
+   */
 
   if(file){
 
-    const ext=file.name.split(".").pop();
-    const path="products/"+crypto.randomUUID()+"."+ext;
+    try{
 
-    const up=await sb.storage
-      .from(BUCKET)
-      .upload(path,file,{upsert:false});
+      if(
+        !file.type ||
+        !file.type.startsWith("image/")
+      ){
 
-    if(up.error){
-      alert("خطا در آپلود تصویر:\n"+up.error.message);
+        alert(
+          "لطفاً یک فایل تصویری انتخاب کن."
+        );
+
+        return;
+      }
+
+
+      msg(
+        "در حال آماده‌سازی تصویر..."
+      );
+
+
+      const compressed =
+        await compressImage(file);
+
+
+      const path =
+        "products/" +
+        crypto.randomUUID() +
+        ".jpg";
+
+
+      msg(
+        "در حال آپلود تصویر..."
+      );
+
+
+      const up =
+        await sb.storage
+          .from(BUCKET)
+          .upload(
+            path,
+            compressed,
+            {
+              upsert:false,
+              contentType:"image/jpeg",
+              cacheControl:"3600"
+            }
+          );
+
+
+      if(up.error){
+
+        alert(
+          "خطا در آپلود تصویر:\n" +
+          up.error.message
+        );
+
+        msg(
+          "آپلود تصویر ناموفق بود."
+        );
+
+        return;
+      }
+
+
+      imageUrl =
+        sb.storage
+          .from(BUCKET)
+          .getPublicUrl(path)
+          .data
+          .publicUrl;
+
+
+    }catch(error){
+
+      console.error(
+        "IMAGE ERROR:",
+        error
+      );
+
+
+      alert(
+        "خطا در آماده‌سازی تصویر:\n" +
+        (
+          error?.message ||
+          "Load failed"
+        )
+      );
+
+
+      msg(
+        "پردازش تصویر ناموفق بود."
+      );
+
+
       return;
     }
 
-    imageUrl=sb.storage
-      .from(BUCKET)
-      .getPublicUrl(path).data.publicUrl;
   }
 
-  const data={
-    name:$("pName").value.trim(),
-    name_en:$("pNameEn").value.trim()||null,
-    price:Number($("pPrice").value)||0,
-    description:$("pDescription").value.trim()||null,
-    ingredients:$("pIngredients").value.trim()||null,
-    allergens:$("pAllergens").value.trim()||null,
-    subcategory_id:$("pSub").value||null,
-    sort_order:Number($("pSort").value)||0,
-    is_available:$("pAvailable").checked,
-    is_special:$("pSpecial").checked,
-    is_best_seller:$("pBest").checked
+
+  /*
+   * PRODUCT DATA
+   */
+
+  const data = {
+
+    name:
+      $("pName")
+        .value
+        .trim(),
+
+    name_en:
+      $("pNameEn")
+        .value
+        .trim() || null,
+
+    price:
+      Number(
+        $("pPrice").value
+      ) || 0,
+
+    description:
+      $("pDescription")
+        .value
+        .trim() || null,
+
+    ingredients:
+      $("pIngredients")
+        .value
+        .trim() || null,
+
+    allergens:
+      $("pAllergens")
+        .value
+        .trim() || null,
+
+    subcategory_id:
+      $("pSub").value || null,
+
+    sort_order:
+      Number(
+        $("pSort").value
+      ) || 0,
+
+    is_available:
+      $("pAvailable").checked,
+
+    is_special:
+      $("pSpecial").checked,
+
+    is_best_seller:
+      $("pBest").checked
+
   };
 
-  if(imageUrl)data.image_url=imageUrl;
+
+  if(imageUrl){
+
+    data.image_url =
+      imageUrl;
+
+  }
+
 
   if(!data.name){
-    alert("نام محصول را وارد کن.");
+
+    alert(
+      "نام محصول را وارد کن."
+    );
+
     return;
   }
+
+
+  msg(
+    "در حال ذخیره محصول..."
+  );
+
 
   let result;
 
+
   if(id){
-    result=await sb.from("products")
-      .update(data)
-      .eq("id",id);
+
+    result =
+      await sb
+        .from("products")
+        .update(data)
+        .eq("id",id);
+
   }else{
-    result=await sb.from("products")
-      .insert(data);
+
+    result =
+      await sb
+        .from("products")
+        .insert(data);
+
   }
 
+
   if(result.error){
-    alert(result.error.message);
+
+    alert(
+      result.error.message
+    );
+
     return;
   }
 
+
   clearProduct();
+
   await loadAll();
-  alert("محصول ذخیره شد.");
+
+
+  alert(
+    "محصول با موفقیت ذخیره شد."
+  );
+
 }
+
+
+/* EDIT PRODUCT */
 
 function editProduct(id){
 
-  const p=products.find(x=>x.id===id);
+  const p =
+    products.find(
+      x => x.id === id
+    );
+
+
   if(!p)return;
 
-  $("productId").value=p.id;
-  $("pName").value=p.name||"";
-  $("pNameEn").value=p.name_en||"";
-  $("pPrice").value=p.price||"";
-  $("pDescription").value=p.description||"";
-  $("pIngredients").value=p.ingredients||"";
-  $("pAllergens").value=p.allergens||"";
-  $("pSub").value=p.subcategory_id||"";
-  $("pSort").value=p.sort_order||0;
-  $("pAvailable").checked=p.is_available!==false;
-  $("pSpecial").checked=!!p.is_special;
-  $("pBest").checked=!!p.is_best_seller;
+
+  $("productId").value =
+    p.id;
+
+
+  $("pName").value =
+    p.name || "";
+
+
+  $("pNameEn").value =
+    p.name_en || "";
+
+
+  $("pPrice").value =
+    p.price || "";
+
+
+  $("pDescription").value =
+    p.description || "";
+
+
+  $("pIngredients").value =
+    p.ingredients || "";
+
+
+  $("pAllergens").value =
+    p.allergens || "";
+
+
+  $("pSub").value =
+    p.subcategory_id || "";
+
+
+  $("pSort").value =
+    p.sort_order || 0;
+
+
+  $("pAvailable").checked =
+    p.is_available !== false;
+
+
+  $("pSpecial").checked =
+    !!p.is_special;
+
+
+  $("pBest").checked =
+    !!p.is_best_seller;
+
+
+  $("pImage").value =
+    "";
+
 
   showTab("products");
-  window.scrollTo({top:0,behavior:"smooth"});
+
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
 }
+
+
+/* DELETE PRODUCT */
 
 async function deleteProduct(id){
 
-  if(!confirm("این محصول حذف شود؟"))return;
-
-  const {error}=await sb.from("products")
-    .delete().eq("id",id);
-
-  if(error){
-    alert(error.message);
+  if(
+    !confirm(
+      "این محصول حذف شود؟"
+    )
+  ){
     return;
   }
 
+
+  const {error} =
+    await sb
+      .from("products")
+      .delete()
+      .eq("id",id);
+
+
+  if(error){
+
+    alert(
+      error.message
+    );
+
+    return;
+  }
+
+
   await loadAll();
+
 }
+
+
+/* CLEAR PRODUCT */
 
 function clearProduct(){
 
-  $("productId").value="";
-  $("pName").value="";
-  $("pNameEn").value="";
-  $("pPrice").value="";
-  $("pDescription").value="";
-  $("pIngredients").value="";
-  $("pAllergens").value="";
-  $("pSub").value="";
-  $("pSort").value=0;
-  $("pAvailable").checked=true;
-  $("pSpecial").checked=false;
-  $("pBest").checked=false;
-  $("pImage").value="";
+  $("productId").value =
+    "";
+
+
+  $("pName").value =
+    "";
+
+
+  $("pNameEn").value =
+    "";
+
+
+  $("pPrice").value =
+    "";
+
+
+  $("pDescription").value =
+    "";
+
+
+  $("pIngredients").value =
+    "";
+
+
+  $("pAllergens").value =
+    "";
+
+
+  $("pSub").value =
+    "";
+
+
+  $("pSort").value =
+    0;
+
+
+  $("pAvailable").checked =
+    true;
+
+
+  $("pSpecial").checked =
+    false;
+
+
+  $("pBest").checked =
+    false;
+
+
+  $("pImage").value =
+    "";
+
 }
+
+
+/* SAVE CATEGORY */
 
 async function saveCategory(){
 
-  const name=$("catName").value.trim();
+  const name =
+    $("catName")
+      .value
+      .trim();
+
 
   if(!name){
-    alert("نام دسته را وارد کن.");
+
+    alert(
+      "نام دسته را وارد کن."
+    );
+
     return;
   }
 
-  const {error}=await sb.from("categories").insert({
-    name,
-    name_en:$("catNameEn").value.trim()||null,
-    sort_order:Number($("catSort").value)||0,
-    is_active:true
-  });
+
+  const {error} =
+    await sb
+      .from("categories")
+      .insert({
+
+        name,
+
+        name_en:
+          $("catNameEn")
+            .value
+            .trim() || null,
+
+        sort_order:
+          Number(
+            $("catSort").value
+          ) || 0,
+
+        is_active:true
+
+      });
+
 
   if(error){
-    alert(error.message);
+
+    alert(
+      error.message
+    );
+
     return;
   }
 
-  $("catName").value="";
-  $("catNameEn").value="";
+
+  $("catName").value =
+    "";
+
+
+  $("catNameEn").value =
+    "";
+
+
   await loadAll();
+
 }
+
+
+/* DELETE CATEGORY */
 
 async function deleteCategory(id){
 
-  if(!confirm("این دسته حذف شود؟"))return;
-
-  const {error}=await sb.from("categories")
-    .delete().eq("id",id);
-
-  if(error){
-    alert(error.message);
+  if(
+    !confirm(
+      "این دسته حذف شود؟"
+    )
+  ){
     return;
   }
 
+
+  const {error} =
+    await sb
+      .from("categories")
+      .delete()
+      .eq("id",id);
+
+
+  if(error){
+
+    alert(
+      error.message
+    );
+
+    return;
+  }
+
+
   await loadAll();
+
 }
+
+
+/* SAVE SUBCATEGORY */
 
 async function saveSub(){
 
-  const name=$("subName").value.trim();
-  const category_id=$("subCat").value;
+  const name =
+    $("subName")
+      .value
+      .trim();
 
-  if(!name||!category_id){
-    alert("دسته و نام زیر‌دسته را انتخاب کن.");
+
+  const category_id =
+    $("subCat").value;
+
+
+  if(
+    !name ||
+    !category_id
+  ){
+
+    alert(
+      "دسته و نام زیر‌دسته را انتخاب کن."
+    );
+
     return;
   }
 
-  const {error}=await sb.from("subcategories").insert({
-    name,
-    name_en:$("subNameEn").value.trim()||null,
-    category_id,
-    sort_order:Number($("subSort").value)||0,
-    is_active:true
-  });
+
+  const {error} =
+    await sb
+      .from("subcategories")
+      .insert({
+
+        name,
+
+        name_en:
+          $("subNameEn")
+            .value
+            .trim() || null,
+
+        category_id,
+
+        sort_order:
+          Number(
+            $("subSort").value
+          ) || 0,
+
+        is_active:true
+
+      });
+
 
   if(error){
-    alert(error.message);
+
+    alert(
+      error.message
+    );
+
     return;
   }
 
-  $("subName").value="";
-  $("subNameEn").value="";
+
+  $("subName").value =
+    "";
+
+
+  $("subNameEn").value =
+    "";
+
+
   await loadAll();
+
 }
+
+
+/* DELETE SUBCATEGORY */
 
 async function deleteSub(id){
 
-  if(!confirm("این زیر‌دسته حذف شود؟"))return;
-
-  const {error}=await sb.from("subcategories")
-    .delete().eq("id",id);
-
-  if(error){
-    alert(error.message);
+  if(
+    !confirm(
+      "این زیر‌دسته حذف شود؟"
+    )
+  ){
     return;
   }
 
+
+  const {error} =
+    await sb
+      .from("subcategories")
+      .delete()
+      .eq("id",id);
+
+
+  if(error){
+
+    alert(
+      error.message
+    );
+
+    return;
+  }
+
+
   await loadAll();
+
 }
+
+
+/* SAVE SETTINGS */
 
 async function saveSettings(){
 
-  const data={
-    cafe_name:$("sName").value.trim(),
-    tagline:$("sTagline").value.trim(),
-    address:$("sAddress").value.trim(),
-    opening_hours:$("sHours").value.trim(),
-    instagram:$("sInstagram").value.trim(),
-    map_url:$("sMap").value.trim()
+  const data = {
+
+    cafe_name:
+      $("sName")
+        .value
+        .trim(),
+
+    tagline:
+      $("sTagline")
+        .value
+        .trim(),
+
+    address:
+      $("sAddress")
+        .value
+        .trim(),
+
+    opening_hours:
+      $("sHours")
+        .value
+        .trim(),
+
+    instagram:
+      $("sInstagram")
+        .value
+        .trim(),
+
+    map_url:
+      $("sMap")
+        .value
+        .trim()
+
   };
+
 
   let result;
 
+
   if(settingsId){
-    result=await sb.from("cafe_settings")
-      .update(data).eq("id",settingsId);
+
+    result =
+      await sb
+        .from("cafe_settings")
+        .update(data)
+        .eq("id",settingsId);
+
   }else{
-    result=await sb.from("cafe_settings")
-      .insert(data);
+
+    result =
+      await sb
+        .from("cafe_settings")
+        .insert(data);
+
   }
 
+
   if(result.error){
-    alert(result.error.message);
+
+    alert(
+      result.error.message
+    );
+
     return;
   }
 
+
   await loadAll();
-  alert("اطلاعات کافه ذخیره شد.");
+
+
+  alert(
+    "اطلاعات کافه ذخیره شد."
+  );
+
 }
 
-sb.auth.getSession().then(({data})=>{
-  if(data.session)start();
-});
 
-sb.auth.onAuthStateChange((event,session)=>{
-  if(session && event==="SIGNED_IN")start();
-});
+/* EXISTING SESSION */
+
+sb.auth
+  .getSession()
+  .then(({data}) => {
+
+    if(data.session){
+
+      start();
+
+    }
+
+  });
+
+
+/* AUTH CHANGES */
+
+sb.auth
+  .onAuthStateChange(
+    (event,session) => {
+
+      if(
+        session &&
+        event === "SIGNED_IN"
+      ){
+
+        start();
+
+      }
+
+    }
+  );
+
 </script>
 
 </body>
