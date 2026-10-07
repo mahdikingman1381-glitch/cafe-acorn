@@ -3,18 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
   <title>Cafe Acorn | منوی دیجیتال</title>
-
   <meta name="theme-color" content="#171411">
   <meta name="description" content="منوی دیجیتال Cafe Acorn">
-
   <link rel="stylesheet" href="style.css">
 
   <style>
     :root{
       --bg:#f7f4ef;
-      --card:#ffffff;
+      --card:#fff;
       --dark:#171411;
       --brown:#5b3824;
       --gold:#c99645;
@@ -22,46 +19,23 @@
       --line:#e9e2d8;
       --soft:#efe8de;
       --shadow:0 10px 30px rgba(48,35,23,.08);
-      --radius:22px;
     }
 
-    *{
-      box-sizing:border-box;
-      -webkit-tap-highlight-color:transparent;
-    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
-    html{
-      scroll-behavior:smooth;
-    }
+    html{scroll-behavior:smooth}
 
     body{
       margin:0;
       background:var(--bg);
       color:var(--dark);
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "SF Pro Display",
-        "Segoe UI",
-        Tahoma,
-        Arial,
-        sans-serif;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;
       line-height:1.8;
     }
 
-    button,
-    input{
-      font:inherit;
-    }
-
-    button{
-      cursor:pointer;
-    }
-
-    a{
-      color:inherit;
-      text-decoration:none;
-    }
+    button,input{font:inherit}
+    button{cursor:pointer}
+    a{color:inherit;text-decoration:none}
 
     header{
       position:sticky;
@@ -77,10 +51,7 @@
       border-bottom:1px solid rgba(0,0,0,.06);
     }
 
-    header b{
-      font-size:19px;
-      white-space:nowrap;
-    }
+    header b{font-size:19px;white-space:nowrap}
 
     header nav{
       display:flex;
@@ -91,13 +62,7 @@
       color:var(--muted);
     }
 
-    header nav a{
-      transition:.2s;
-    }
-
-    header nav a:hover{
-      color:var(--brown);
-    }
+    header nav a:hover{color:var(--brown)}
 
     #searchBtn{
       width:42px;
@@ -126,17 +91,6 @@
       overflow:hidden;
     }
 
-    .hero:after{
-      content:"";
-      position:absolute;
-      width:280px;
-      height:280px;
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:50%;
-      left:-80px;
-      bottom:-150px;
-    }
-
     .hero > div{
       position:relative;
       z-index:2;
@@ -160,7 +114,6 @@
       margin:0 0 8px;
       font-size:38px;
       line-height:1.25;
-      letter-spacing:-1px;
     }
 
     .hero p{
@@ -176,21 +129,18 @@
       background:#fff;
       color:var(--dark);
       font-weight:800;
-      box-shadow:0 10px 30px rgba(0,0,0,.18);
     }
 
     .cats{
       display:flex;
       gap:10px;
       overflow-x:auto;
-      padding:16px 16px 12px;
+      padding:16px;
       scrollbar-width:none;
       background:var(--bg);
     }
 
-    .cats::-webkit-scrollbar{
-      display:none;
-    }
+    .cats::-webkit-scrollbar{display:none}
 
     .cats button{
       flex:0 0 auto;
@@ -200,7 +150,6 @@
       min-width:88px;
       padding:10px 13px;
       color:var(--dark);
-      box-shadow:0 3px 12px rgba(0,0,0,.03);
     }
 
     .cats small{
@@ -216,13 +165,9 @@
       padding:12px 16px 40px;
     }
 
-    section{
-      scroll-margin-top:85px;
-    }
+    section{scroll-margin-top:85px}
 
-    #menu{
-      padding-top:14px;
-    }
+    #menu{padding-top:14px}
 
     .head{
       display:flex;
@@ -231,12 +176,9 @@
       margin:10px 0 18px;
     }
 
-    .head > div{
-      flex:1;
-    }
+    .head > div{flex:1}
 
-    .head span,
-    .about span{
+    .head span,.about span{
       color:var(--gold);
       font-size:12px;
       font-weight:800;
@@ -255,7 +197,6 @@
       padding:0 14px;
       background:#fff;
       outline:none;
-      color:var(--dark);
     }
 
     #search:focus{
@@ -267,13 +208,11 @@
       display:flex;
       gap:8px;
       overflow-x:auto;
-      padding:2px 0 16px;
+      padding:2px 0 10px;
       scrollbar-width:none;
     }
 
-    .chips::-webkit-scrollbar{
-      display:none;
-    }
+    .chips::-webkit-scrollbar{display:none}
 
     .chip{
       flex:0 0 auto;
@@ -291,6 +230,11 @@
       border-color:var(--dark);
     }
 
+    #subchips{
+      padding-top:0;
+      padding-bottom:16px;
+    }
+
     #products{
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
@@ -300,17 +244,11 @@
     .card{
       position:relative;
       overflow:hidden;
-      background:var(--card);
+      background:#fff;
       border:1px solid rgba(0,0,0,.045);
       border-radius:20px;
       padding:14px;
-      min-height:145px;
       box-shadow:var(--shadow);
-      transition:transform .18s,box-shadow .18s;
-    }
-
-    .card:active{
-      transform:scale(.98);
     }
 
     .product-img{
@@ -337,27 +275,15 @@
     .card h3{
       margin:0 0 4px;
       font-size:16px;
-      line-height:1.5;
     }
 
     .card p{
       margin:0 0 5px;
       color:var(--muted);
       font-size:12px;
-      line-height:1.65;
-      display:-webkit-box;
-      -webkit-line-clamp:2;
-      -webkit-box-orient:vertical;
-      overflow:hidden;
-    }
-
-    .card small{
-      color:#a29a91;
-      font-size:10px;
     }
 
     .price{
-      flex:0 0 auto;
       color:var(--brown);
       font-size:14px;
       font-weight:900;
@@ -382,18 +308,9 @@
       border-radius:24px;
       background:linear-gradient(145deg,#3a261a,#211710);
       color:#fff;
-      box-shadow:var(--shadow);
     }
 
-    .special h2{
-      margin:0 0 13px;
-      font-size:20px;
-    }
-
-    #specials{
-      display:grid;
-      gap:8px;
-    }
+    #specials{display:grid;gap:8px}
 
     .special-item{
       display:flex;
@@ -403,18 +320,7 @@
       padding:12px 13px;
       border-radius:15px;
       background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.07);
       cursor:pointer;
-    }
-
-    .special-item b{
-      font-size:13px;
-    }
-
-    .special-item span{
-      color:#e5c083;
-      font-size:12px;
-      white-space:nowrap;
     }
 
     .about{
@@ -445,14 +351,6 @@
       gap:9px;
     }
 
-    .gallery img{
-      width:100%;
-      aspect-ratio:1;
-      object-fit:cover;
-      border-radius:15px;
-      background:var(--soft);
-    }
-
     .contact{
       margin-top:20px;
       padding:24px;
@@ -462,9 +360,7 @@
       border:1px solid var(--line);
     }
 
-    .contact b{
-      font-size:19px;
-    }
+    .contact b{font-size:19px}
 
     .contact p{
       color:var(--muted);
@@ -489,14 +385,11 @@
       align-items:flex-end;
       justify-content:center;
       background:rgba(0,0,0,.55);
-      padding:0;
     }
 
-    #modal.open{
-      display:flex;
-    }
+    #modal.open{display:flex}
 
-    #modal article{
+    #modal .modal-content{
       width:100%;
       max-width:620px;
       max-height:88vh;
@@ -505,15 +398,9 @@
       border-radius:28px 28px 0 0;
       padding:22px;
       position:relative;
-      animation:slideUp .22s ease;
     }
 
-    @keyframes slideUp{
-      from{transform:translateY(30px);opacity:.4}
-      to{transform:translateY(0);opacity:1}
-    }
-
-    #modal article > button{
+    #modal .close-btn{
       position:absolute;
       left:15px;
       top:14px;
@@ -524,6 +411,7 @@
       background:#f1eee9;
       font-size:25px;
       line-height:1;
+      z-index:2;
     }
 
     .detail-img{
@@ -539,19 +427,9 @@
       font-size:25px;
     }
 
-    #detail small{
-      color:var(--muted);
-    }
-
     #detail p{
       color:var(--muted);
       font-size:14px;
-    }
-
-    #detail hr{
-      border:0;
-      border-top:1px solid var(--line);
-      margin:17px 0;
     }
 
     footer{
@@ -559,297 +437,196 @@
       text-align:center;
       color:#a49b92;
       font-size:10px;
-      letter-spacing:.5px;
     }
 
     @media(max-width:700px){
-      header{
-        height:62px;
-      }
+      header{height:62px}
+      header nav{display:none}
+      header b{margin-left:auto}
 
-      header nav{
-        display:none;
-      }
-
-      header b{
-        margin-left:auto;
-      }
-
-      #searchBtn{
-        width:40px;
-        height:40px;
-      }
-
-      .hero{
-        min-height:365px;
-      }
-
-      .hero h1{
-        font-size:32px;
-      }
+      .hero{min-height:365px}
+      .hero h1{font-size:32px}
 
       .head{
         align-items:stretch;
         flex-direction:column;
       }
 
-      #search{
-        width:100%;
-      }
+      #search{width:100%}
 
-      #products{
-        grid-template-columns:1fr;
-      }
+      #products{grid-template-columns:1fr}
 
-      .about{
-        grid-template-columns:1fr;
-      }
-
-      .gallery{
-        grid-template-columns:repeat(4,1fr);
-      }
-    }
-
-    @media(min-width:701px){
-      .gallery img{
-        aspect-ratio:1.1;
-      }
+      .about{grid-template-columns:1fr}
     }
   </style>
 </head>
 
 <body>
 
-  <header>
-    <b>🌰 Cafe Acorn</b>
+<header>
+  <b>🌰 Cafe Acorn</b>
 
-    <nav>
-      <a href="#home">خانه</a>
-      <a href="#menu">منو</a>
-      <a href="#about">درباره ما</a>
-      <a href="#contact">تماس</a>
-    </nav>
+  <nav>
+    <a href="#home">خانه</a>
+    <a href="#menu">منو</a>
+    <a href="#about">درباره ما</a>
+    <a href="#contact">تماس</a>
+  </nav>
 
-    <button id="searchBtn" aria-label="جستجو">⌕</button>
-  </header>
+  <button id="searchBtn" aria-label="جستجو">⌕</button>
+</header>
 
+<section id="home" class="hero">
+  <div>
+    <div class="logo">🌰</div>
 
-  <section id="home" class="hero">
+    <h1 id="cafeName">Cafe Acorn</h1>
+
+    <p id="tagline">جایی برای آرامش و حال خوب تو ✨</p>
+
+    <button onclick="go('menu')">
+      مشاهده منو
+    </button>
+  </div>
+</section>
+
+<div class="cats">
+  <button onclick="go('menu')">☕<small>مشاهده منو</small></button>
+  <button onclick="go('menu')">🍳<small>صبحانه</small></button>
+  <button onclick="go('menu')">🍔<small>فست‌فود</small></button>
+  <button onclick="go('menu')">☕<small>قهوه</small></button>
+  <button onclick="go('menu')">🥤<small>نوشیدنی</small></button>
+  <button onclick="go('menu')">🍰<small>دسر</small></button>
+</div>
+
+<main>
+
+<section id="menu">
+
+  <div class="head">
     <div>
-      <div class="logo">🌰</div>
-
-      <h1>Cafe Acorn</h1>
-
-      <p>
-        جایی برای آرامش و حال خوب تو ✨
-      </p>
-
-      <button onclick="go('menu')">
-        مشاهده منو
-      </button>
+      <span>MENU</span>
+      <h2>منوی Cafe Acorn</h2>
     </div>
-  </section>
 
-
-  <div class="cats">
-    <button onclick="go('menu')">
-      ☕
-      <small>مشاهده منو</small>
-    </button>
-
-    <button onclick="go('menu')">
-      🍳
-      <small>صبحانه</small>
-    </button>
-
-    <button onclick="go('menu')">
-      🍔
-      <small>فست‌فود</small>
-    </button>
-
-    <button onclick="go('menu')">
-      ☕
-      <small>قهوه</small>
-    </button>
-
-    <button onclick="go('menu')">
-      🥤
-      <small>نوشیدنی</small>
-    </button>
-
-    <button onclick="go('menu')">
-      🍰
-      <small>دسر</small>
-    </button>
+    <input
+      id="search"
+      type="search"
+      placeholder="جستجوی محصول..."
+      autocomplete="off"
+    >
   </div>
 
+  <!-- دسته‌بندی اصلی -->
+  <div id="chips" class="chips"></div>
 
-  <main>
+  <!-- زیر دسته‌بندی -->
+  <div id="subchips" class="chips"></div>
 
-    <section id="menu">
-
-      <div class="head">
-        <div>
-          <span>MENU</span>
-          <h2>منوی Cafe Acorn</h2>
-        </div>
-
-        <input
-          id="search"
-          type="search"
-          placeholder="جستجوی محصول..."
-          autocomplete="off"
-        >
-      </div>
-
-
-      <div id="chips" class="chips">
-        <!-- دسته‌بندی‌ها توسط Supabase ساخته می‌شوند -->
-      </div>
-
-
-      <div id="products">
-        <p>در حال دریافت منو...</p>
-      </div>
-
-    </section>
-
-
-    <section class="special">
-
-      <h2>✨ پیشنهاد امروز</h2>
-
-      <div id="specials">
-        <p>در حال دریافت پیشنهادها...</p>
-      </div>
-
-    </section>
-
-
-    <section id="about" class="about">
-
-      <div>
-
-        <span>ABOUT US</span>
-
-        <h2>Cafe Acorn</h2>
-
-        <p>
-          جایی برای آرامش و حال خوب تو ✨
-        </p>
-
-        <p>
-          ⏰ ۷:۳۰ تا ۱۳:۰۰ و ۱۷:۰۰ تا ۲۳:۰۰
-        </p>
-
-        <p>
-          📍 بلوار امام حسین، جنب کابینت بلوط
-        </p>
-
-        <p>
-          📷 @cafe_acorn
-        </p>
-
-      </div>
-
-
-      <div class="gallery">
-
-        <div
-          style="
-            grid-column:1/-1;
-            aspect-ratio:16/9;
-            border-radius:18px;
-            display:grid;
-            place-items:center;
-            background:
-              radial-gradient(circle at 50% 35%,rgba(201,150,69,.25),transparent 30%),
-              linear-gradient(145deg,#271b14,#4a3020);
-            color:#fff;
-            font-size:55px;
-          "
-        >
-          🌰
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <section id="contact" class="contact">
-
-      <b>📍 اطلاعات کافه</b>
-
-      <p>
-        بلوار امام حسین، جنب کابینت بلوط
-      </p>
-
-      <button onclick="map()">
-        مشاهده مسیر روی نقشه
-      </button>
-
-    </section>
-
-  </main>
-
-
-  <div id="modal">
-
-    <article>
-
-      <button onclick="closeModal()" aria-label="بستن">
-        ×
-      </button>
-
-      <div id="detail">
-        <!-- جزئیات محصول توسط script.js قرار می‌گیرد -->
-      </div>
-
-    </article>
-
+  <div id="products">
+    <p>در حال دریافت منو...</p>
   </div>
 
+</section>
 
-  <footer>
-    © 2026 Cafe Acorn · COFFEE & GOOD MOMENTS
-  </footer>
+<section class="special">
+  <h2>✨ پیشنهاد امروز</h2>
+  <div id="specials">
+    <p>در حال دریافت پیشنهادها...</p>
+  </div>
+</section>
 
+<section id="about" class="about">
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <div>
+    <span>ABOUT US</span>
 
-  <!-- تنظیمات Supabase -->
-  <script src="supabase-config.js"></script>
+    <h2 id="aboutName">Cafe Acorn</h2>
 
-  <!-- منطق سایت -->
-  <script src="script.js"></script>
+    <p id="aboutTagline">جایی برای آرامش و حال خوب تو ✨</p>
 
+    <p>⏰ <span id="hours">۷:۳۰ تا ۱۳:۰۰ و ۱۷:۰۰ تا ۲۳:۰۰</span></p>
 
-  <script>
-    /*
-      بهبود رفتار صفحه
-    */
+    <p>📍 <span id="address">بلوار امام حسین، جنب کابینت بلوط</span></p>
 
-    document.addEventListener('DOMContentLoaded', function(){
+    <p>📷 <span id="instagram">@cafe_acorn</span></p>
+  </div>
 
-      const searchBtn = document.getElementById('searchBtn');
-      const search = document.getElementById('search');
+  <div class="gallery">
+    <div style="
+      grid-column:1/-1;
+      aspect-ratio:16/9;
+      border-radius:18px;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(circle at 50% 35%,rgba(201,150,69,.25),transparent 30%),
+        linear-gradient(145deg,#271b14,#4a3020);
+      color:#fff;
+      font-size:55px;
+    ">🌰</div>
+  </div>
 
-      if(searchBtn && search){
-        searchBtn.addEventListener('click', function(){
-          document.getElementById('menu').scrollIntoView({
-            behavior:'smooth'
-          });
+</section>
 
-          setTimeout(function(){
-            search.focus();
-          },500);
-        });
-      }
+<section id="contact" class="contact">
 
+  <b>📍 اطلاعات کافه</b>
+
+  <p id="contactAddress">
+    بلوار امام حسین، جنب کابینت بلوط
+  </p>
+
+  <button onclick="map()">
+    مشاهده مسیر روی نقشه
+  </button>
+
+</section>
+
+</main>
+
+<div id="modal">
+
+  <article class="modal-content">
+
+    <button class="close-btn" onclick="closeModal()" aria-label="بستن">
+      ×
+    </button>
+
+    <div id="detail"></div>
+
+  </article>
+
+</div>
+
+<footer>
+  © 2026 Cafe Acorn · COFFEE & GOOD MOMENTS
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="script.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+
+  const searchBtn=document.getElementById("searchBtn");
+  const search=document.getElementById("search");
+
+  if(searchBtn && search){
+    searchBtn.addEventListener("click",function(){
+      document.getElementById("menu").scrollIntoView({
+        behavior:"smooth"
+      });
+
+      setTimeout(function(){
+        search.focus();
+      },500);
     });
-  </script>
+  }
+
+});
+</script>
 
 </body>
 </html>
