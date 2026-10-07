@@ -282,16 +282,13 @@
     renderSubcategories();
   }
 
-  /*
-   * ردیف پایینی کاملاً حذف شده.
-   * هیچ «همه» و هیچ زیردسته‌ای در این قسمت نمایش داده نمی‌شود.
-   */
   function renderSubcategories() {
     const box = $("subchips");
 
     if (!box) return;
 
     box.innerHTML = "";
+    box.style.display = "none";
   }
 
   function filteredProducts() {
