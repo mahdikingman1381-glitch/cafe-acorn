@@ -30,7 +30,9 @@
 
   function price(value) {
     if (value === null || value === undefined || value === "") return "";
+
     const n = Number(value);
+
     return Number.isFinite(n)
       ? n.toLocaleString("fa-IR") + " تومان"
       : escapeHTML(value);
@@ -127,6 +129,7 @@
 
   function showError(error) {
     const box = $("products");
+
     if (!box) return;
 
     box.innerHTML = `
@@ -151,15 +154,22 @@
 
   function renderCafeInfo() {
     const name = cafe.cafe_name || "کافه بلوط";
+
     const tagline =
-      cafe.tagline || "جایی برای آرامش و حال خوب تو ✨";
+      cafe.tagline ||
+      "جایی برای آرامش و حال خوب تو ✨";
+
     const address =
-      cafe.address || "بلوار امام حسین، جنب کابینت بلوط";
+      cafe.address ||
+      "بلوار امام حسین، جنب کابینت بلوط";
+
     const hours =
       cafe.opening_hours ||
       "۷:۳۰ تا ۱۳:۰۰ و ۱۷:۰۰ تا ۲۳:۰۰";
+
     const instagram =
-      cafe.instagram || "@cafe_acorn";
+      cafe.instagram ||
+      "@cafe_acorn";
 
     document.title = name + " | منوی دیجیتال";
 
@@ -188,11 +198,13 @@
     });
 
     const hoursEl = $("hours");
+
     if (hoursEl) {
       hoursEl.textContent = hours;
     }
 
     const instagramEl = $("instagram");
+
     if (instagramEl) {
       instagramEl.textContent = instagram;
     }
@@ -200,6 +212,7 @@
 
   function renderCategories() {
     const box = $("chips");
+
     if (!box) return;
 
     let html = `
@@ -255,6 +268,7 @@
 
   function renderSubcategories() {
     const box = $("subchips");
+
     if (!box) return;
 
     let list = subcategories;
@@ -271,15 +285,12 @@
       return;
     }
 
-    let html = `
-      <button
-        type="button"
-        class="chip active"
-        data-subcategory="all"
-      >
-        همه
-      </button>
-    `;
+    /*
+      عمداً دکمه «همه» اینجا حذف شده.
+      فقط زیردسته‌ها نمایش داده می‌شوند.
+    */
+
+    let html = "";
 
     list.forEach(function (item) {
       html += `
@@ -321,6 +332,7 @@
     let list = products.slice();
 
     if (selectedCategory) {
+
       const ids = subcategories
         .filter(function (item) {
           return String(item.category_id) ===
@@ -338,6 +350,7 @@
     }
 
     if (selectedSubcategory) {
+
       list = list.filter(function (product) {
         return String(product.subcategory_id) ===
           String(selectedSubcategory);
@@ -345,9 +358,11 @@
     }
 
     if (searchQuery) {
+
       const q = searchQuery.toLowerCase();
 
       list = list.filter(function (product) {
+
         return [
           product.name,
           product.name_en,
@@ -367,11 +382,13 @@
 
   function renderProducts() {
     const box = $("products");
+
     if (!box) return;
 
     const list = filteredProducts();
 
     if (!list.length) {
+
       box.innerHTML = `
         <div style="
           grid-column:1/-1;
@@ -384,6 +401,7 @@
           محصولی پیدا نشد.
         </div>
       `;
+
       return;
     }
 
@@ -391,6 +409,7 @@
       .map(function (product) {
 
         const image = product.image_url
+
           ? `
             <img
               class="product-img"
@@ -399,6 +418,7 @@
               loading="lazy"
             >
           `
+
           : `
             <div
               class="product-img"
@@ -425,6 +445,7 @@
             <div class="row">
 
               <div>
+
                 <h3>
                   ${escapeHTML(product.name)}
                 </h3>
@@ -448,6 +469,7 @@
                     `
                     : ""
                 }
+
               </div>
 
               <div class="price">
@@ -481,11 +503,14 @@
         });
 
         card.addEventListener("keydown", function (event) {
+
           if (
             event.key === "Enter" ||
             event.key === " "
           ) {
+
             event.preventDefault();
+
             openProduct(card.dataset.productId);
           }
         });
@@ -494,6 +519,7 @@
 
   function renderSpecials() {
     const box = $("specials");
+
     if (!box) return;
 
     const specials = products.filter(function (product) {
@@ -501,16 +527,19 @@
     });
 
     if (!specials.length) {
+
       box.innerHTML = `
         <div class="special-item">
           فعلاً پیشنهادی ثبت نشده
         </div>
       `;
+
       return;
     }
 
     box.innerHTML = specials
       .map(function (product) {
+
         return `
           <div
             class="special-item"
@@ -525,6 +554,7 @@
 
     box.querySelectorAll("[data-product-id]")
       .forEach(function (item) {
+
         item.addEventListener("click", function () {
           openProduct(item.dataset.productId);
         });
@@ -532,6 +562,7 @@
   }
 
   function openProduct(id) {
+
     const product = products.find(function (item) {
       return String(item.id) === String(id);
     });
@@ -544,6 +575,7 @@
     if (!modal || !detail) return;
 
     detail.innerHTML = `
+
       ${
         product.image_url
           ? `
@@ -572,6 +604,7 @@
         product.ingredients
           ? `
             <hr>
+
             <p>
               <strong>مواد تشکیل‌دهنده:</strong><br>
               ${escapeHTML(product.ingredients)}
@@ -594,15 +627,19 @@
 
     modal.classList.add("open");
     modal.style.display = "flex";
+
     document.body.style.overflow = "hidden";
   }
 
   function closeModal() {
+
     const modal = $("modal");
+
     if (!modal) return;
 
     modal.classList.remove("open");
     modal.style.display = "none";
+
     document.body.style.overflow = "";
   }
 
@@ -610,7 +647,9 @@
   window.closeProduct = closeModal;
 
   window.go = function (id) {
+
     const element = $(id);
+
     if (!element) return;
 
     element.scrollIntoView({
@@ -620,6 +659,7 @@
   };
 
   window.map = function () {
+
     const address =
       cafe.address ||
       "بلوار امام حسین، جنب کابینت بلوط";
@@ -633,6 +673,7 @@
   };
 
   document.addEventListener("click", function (event) {
+
     const modal = $("modal");
 
     if (modal && event.target === modal) {
@@ -641,27 +682,36 @@
   });
 
   document.addEventListener("keydown", function (event) {
+
     if (event.key === "Escape") {
       closeModal();
     }
   });
 
   function setupSearch() {
+
     const search = $("search");
+
     if (!search) return;
 
     search.addEventListener("input", function () {
-      searchQuery = search.value.trim().toLowerCase();
+
+      searchQuery =
+        search.value.trim().toLowerCase();
+
       renderProducts();
     });
   }
 
   if (document.readyState === "loading") {
+
     document.addEventListener(
       "DOMContentLoaded",
       loadMenu
     );
+
   } else {
+
     loadMenu();
   }
 
