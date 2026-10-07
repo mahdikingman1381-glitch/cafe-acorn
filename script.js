@@ -1,4 +1,5 @@
 const cfg = window.CAFE_ACORN_SUPABASE || {};
+
 const supabaseClient = window.supabase.createClient(
   cfg.url,
   cfg.anonKey || cfg.key
@@ -8,44 +9,94 @@ let categories = [];
 let subcategories = [];
 let products = [];
 let cafe = {};
+
 let selectedCategory = null;
 let selectedSubcategory = null;
 
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-function escapeHTML(value) {
+function escapeHTML(value){
   return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 }
 
-function formatPrice(price) {
-  if (price === null || price === undefined || price === "") return "";
+function formatPrice(price){
+  if(price === null || price === undefined || price === ""){
+    return "";
+  }
+
   return Number(price).toLocaleString("fa-IR") + " تومان";
 }
 
-async function loadMenu() {
-  try {
-    const [cat, sub, prod, settings] = await Promise.all([
+
+/* =========================
+   حرکت به بخش
+========================= */
+
+function go(id){
+  const el = document.getElementById(id);
+
+  if(el){
+    el.scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
+  }
+}
+
+
+/* =========================
+   نقشه
+========================= */
+
+function map(){
+
+  const url =
+    cafe.map_url ||
+    "https://www.google.com/maps/search/?api=1&query=" +
+    encodeURIComponent(
+      cafe.address || "بلوار امام حسین، جنب کابینت بلوط"
+    );
+
+  window.open(url,"_blank","noopener");
+}
+
+
+/* =========================
+   دریافت اطلاعات
+========================= */
+
+async function loadMenu(){
+
+  try{
+
+    const [
+      cat,
+      sub,
+      prod,
+      settings
+    ] = await Promise.all([
+
       supabaseClient
         .from("categories")
         .select("*")
-        .eq("is_active", true)
+        .eq("is_active",true)
         .order("sort_order"),
 
       supabaseClient
         .from("subcategories")
         .select("*")
-        .eq("is_active", true)
+        .eq("is_active",true)
         .order("sort_order"),
 
       supabaseClient
         .from("products")
         .select("*")
-        .eq("is_available", true)
+        .eq("is_available",true)
         .order("sort_order"),
 
       supabaseClient
@@ -53,11 +104,12 @@ async function loadMenu() {
         .select("*")
         .limit(1)
         .maybeSingle()
+
     ]);
 
-    if (cat.error) throw cat.error;
-    if (sub.error) throw sub.error;
-    if (prod.error) throw prod.error;
+    if(cat.error) throw cat.error;
+    if(sub.error) throw sub.error;
+    if(prod.error) throw prod.error;
 
     categories = cat.data || [];
     subcategories = sub.data || [];
@@ -66,40 +118,67 @@ async function loadMenu() {
 
     renderCafeInfo();
     renderCategories();
-    renderSpecials();
     renderProducts();
+    renderSpecials();
     setupSearch();
 
-  } catch (error) {
+  }catch(error){
+
     console.error(error);
 
-    const app = $("app") || $("menu") || document.body;
+    const container = $("products");
 
-    app.insertAdjacentHTML(
-      "afterbegin",
-      `<div style="
-        margin:20px;
-        padding:16px;
-        border-radius:14px;
-        background:#fff0f0;
-        color:#8b0000;
-        text-align:center;
-      ">
-        خطا در دریافت منو. لطفاً صفحه را دوباره باز کنید.
-      </div>`
-    );
+    if(container){
+      container.innerHTML = `
+        <div style="
+          padding:30px;
+          text-align:center;
+          color:#8b0000;
+          background:#fff0f0;
+          border-radius:16px;
+        ">
+          خطا در دریافت منو.
+          <br>
+          لطفاً صفحه را دوباره باز کنید.
+        </div>
+      `;
+    }
   }
 }
 
-function renderCafeInfo() {
-  const name = cafe.cafe_name || "کافه بلوط";
+
+/* =========================
+   اطلاعات کافه
+========================= */
+
+function renderCafeInfo(){
+
+  const name =
+    cafe.cafe_name ||
+    cafe.name ||
+    "کافه بلوط";
+
   const tagline =
-    cafe.tagline || "جایی برای آرامش و حال خوب تو ✨";
+    cafe.tagline ||
+    "جایی برای آرامش و حال خوب تو ✨";
+
+  const address =
+    cafe.address ||
+    "بلوار امام حسین، جنب کابینت بلوط";
+
+  const hours =
+    cafe.opening_hours ||
+    cafe.hours ||
+    "۷:۳۰ تا ۱۳:۰۰ و ۱۷:۰۰ تا ۲۳:۰۰";
+
+  const instagram =
+    cafe.instagram ||
+    "@cafe_acorn";
 
   document.title = name;
 
   const nameEls = document.querySelectorAll(
-    "#cafeName,.cafe-name,.brand-name,[data-cafe-name]"
+    "#cafeName,#aboutName,.cafe-name,.brand-name,[data-cafe-name]"
   );
 
   nameEls.forEach(el => {
@@ -107,7 +186,7 @@ function renderCafeInfo() {
   });
 
   const taglineEls = document.querySelectorAll(
-    "#tagline,.tagline,[data-tagline]"
+    "#tagline,#aboutTagline,.tagline,[data-tagline]"
   );
 
   taglineEls.forEach(el => {
@@ -115,12 +194,11 @@ function renderCafeInfo() {
   });
 
   const addressEls = document.querySelectorAll(
-    "#address,.address,[data-address]"
+    "#address,#contactAddress,.address,[data-address]"
   );
 
   addressEls.forEach(el => {
-    el.textContent =
-      cafe.address || "بلوار امام حسین، جنب کابینت بلوط";
+    el.textContent = address;
   });
 
   const hoursEls = document.querySelectorAll(
@@ -128,8 +206,7 @@ function renderCafeInfo() {
   );
 
   hoursEls.forEach(el => {
-    el.textContent =
-      cafe.opening_hours || "۷:۳۰ تا ۱۳:۰۰ و ۱۷:۰۰ تا ۲۳:۰۰";
+    el.textContent = hours;
   });
 
   const instagramEls = document.querySelectorAll(
@@ -137,430 +214,627 @@ function renderCafeInfo() {
   );
 
   instagramEls.forEach(el => {
-    el.textContent = cafe.instagram || "@cafe_acorn";
-  });
-
-  const mapLinks = document.querySelectorAll(
-    "#mapLink,.map-link,[data-map-link]"
-  );
-
-  mapLinks.forEach(el => {
-    if (cafe.map_url) {
-      el.href = cafe.map_url;
-      el.target = "_blank";
-      el.rel = "noopener";
-    }
+    el.textContent = instagram;
   });
 }
 
-function renderCategories() {
+
+/* =========================
+   دسته‌بندی‌ها
+========================= */
+
+function renderCategories(){
+
   const container =
+    $("chips") ||
     $("categories") ||
     $("categoryList") ||
     document.querySelector(".categories");
 
-  if (!container) return;
+  if(!container) return;
 
   container.innerHTML = `
-    <button class="category-btn active" data-category="all">
+
+    <button
+      class="chip active"
+      data-category="all"
+    >
       همه
     </button>
-    ${categories.map(category => `
-      <button
-        class="category-btn"
-        data-category="${escapeHTML(category.id)}"
-      >
-        ${escapeHTML(category.name)}
-      </button>
-    `).join("")}
+
+    ${
+      categories.map(category => `
+
+        <button
+          class="chip"
+          data-category="${escapeHTML(category.id)}"
+        >
+          ${escapeHTML(category.name)}
+        </button>
+
+      `).join("")
+    }
+
   `;
 
-  container.querySelectorAll(".category-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      container.querySelectorAll(".category-btn")
-        .forEach(x => x.classList.remove("active"));
+  container
+    .querySelectorAll(".chip")
+    .forEach(button => {
 
-      btn.classList.add("active");
+      button.addEventListener("click",function(){
 
-      selectedCategory =
-        btn.dataset.category === "all"
-          ? null
-          : btn.dataset.category;
+        container
+          .querySelectorAll(".chip")
+          .forEach(x =>
+            x.classList.remove("active")
+          );
 
-      selectedSubcategory = null;
+        button.classList.add("active");
 
-      renderSubcategories();
-      renderProducts();
+        selectedCategory =
+          button.dataset.category === "all"
+            ? null
+            : button.dataset.category;
+
+        selectedSubcategory = null;
+
+        renderSubcategories();
+        renderProducts();
+
+      });
+
     });
-  });
 
   renderSubcategories();
 }
 
-function renderSubcategories() {
+
+/* =========================
+   زیر دسته‌بندی‌ها
+========================= */
+
+function renderSubcategories(){
+
   const container =
+    $("subchips") ||
     $("subcategories") ||
     $("subcategoryList") ||
     document.querySelector(".subcategories");
 
-  if (!container) return;
+  if(!container) return;
 
   let list = subcategories;
 
-  if (selectedCategory) {
-    list = subcategories.filter(
-      x => String(x.category_id) === String(selectedCategory)
+  if(selectedCategory){
+
+    list = subcategories.filter(sub =>
+      String(sub.category_id) ===
+      String(selectedCategory)
     );
+
   }
 
-  if (!list.length) {
+  if(!list.length){
+
     container.innerHTML = "";
     return;
+
   }
 
   container.innerHTML = `
-    <button class="subcategory-btn active" data-subcategory="all">
+
+    <button
+      class="chip active"
+      data-subcategory="all"
+    >
       همه
     </button>
-    ${list.map(sub => `
-      <button
-        class="subcategory-btn"
-        data-subcategory="${escapeHTML(sub.id)}"
-      >
-        ${escapeHTML(sub.name)}
-      </button>
-    `).join("")}
+
+    ${
+      list.map(sub => `
+
+        <button
+          class="chip"
+          data-subcategory="${escapeHTML(sub.id)}"
+        >
+          ${escapeHTML(sub.name)}
+        </button>
+
+      `).join("")
+    }
+
   `;
 
-  container.querySelectorAll(".subcategory-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      container.querySelectorAll(".subcategory-btn")
-        .forEach(x => x.classList.remove("active"));
+  container
+    .querySelectorAll(".chip")
+    .forEach(button => {
 
-      btn.classList.add("active");
+      button.addEventListener("click",function(){
 
-      selectedSubcategory =
-        btn.dataset.subcategory === "all"
-          ? null
-          : btn.dataset.subcategory;
+        container
+          .querySelectorAll(".chip")
+          .forEach(x =>
+            x.classList.remove("active")
+          );
 
-      renderProducts();
+        button.classList.add("active");
+
+        selectedSubcategory =
+          button.dataset.subcategory === "all"
+            ? null
+            : button.dataset.subcategory;
+
+        renderProducts();
+
+      });
+
     });
-  });
 }
 
-function getFilteredProducts() {
+
+/* =========================
+   فیلتر محصولات
+========================= */
+
+function getFilteredProducts(){
+
   let list = [...products];
 
-  if (selectedCategory) {
-    const subIds = subcategories
-      .filter(x => String(x.category_id) === String(selectedCategory))
-      .map(x => String(x.id));
+  if(selectedCategory){
 
-    list = list.filter(p =>
-      subIds.includes(String(p.subcategory_id))
+    const subIds =
+      subcategories
+
+        .filter(sub =>
+          String(sub.category_id) ===
+          String(selectedCategory)
+        )
+
+        .map(sub => String(sub.id));
+
+    list = list.filter(product =>
+      subIds.includes(
+        String(product.subcategory_id)
+      )
     );
+
   }
 
-  if (selectedSubcategory) {
-    list = list.filter(
-      p => String(p.subcategory_id) === String(selectedSubcategory)
+  if(selectedSubcategory){
+
+    list = list.filter(product =>
+      String(product.subcategory_id) ===
+      String(selectedSubcategory)
     );
+
   }
 
   return list;
 }
 
-function renderProducts() {
-  const container =
-    $("products") ||
-    $("productList") ||
-    document.querySelector(".products");
 
-  if (!container) return;
+/* =========================
+   نمایش محصولات
+========================= */
+
+function renderProducts(){
+
+  const container = $("products");
+
+  if(!container) return;
 
   const list = getFilteredProducts();
 
-  if (!list.length) {
+  if(!list.length){
+
     container.innerHTML = `
       <div style="
-        padding:30px;
+        grid-column:1/-1;
+        padding:35px;
         text-align:center;
         color:#777;
+        background:#fff;
+        border-radius:18px;
       ">
         محصولی در این بخش پیدا نشد.
       </div>
     `;
+
     return;
   }
 
-  container.innerHTML = list.map(productCard).join("");
+  container.innerHTML =
+    list.map(productCard).join("");
 
-  container.querySelectorAll("[data-product-id]")
-    .forEach(card => {
-      card.addEventListener("click", () => {
-        const id = card.dataset.productId;
-        openProduct(id);
-      });
-    });
+  attachProductClicks(container);
 }
 
-function productCard(product) {
+
+/* =========================
+   کارت محصول
+========================= */
+
+function productCard(product){
+
   const image = product.image_url
-    ? `<img
+
+    ? `
+      <img
+        class="product-img"
         src="${escapeHTML(product.image_url)}"
         alt="${escapeHTML(product.name)}"
         loading="lazy"
-        style="width:100%;height:190px;object-fit:cover;border-radius:14px 14px 0 0;"
-      >`
+      >
+    `
+
     : `
-      <div style="
-        height:190px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        background:#eee5de;
-        font-size:45px;
-        border-radius:14px 14px 0 0;
-      ">☕</div>
+      <div class="product-img"
+        style="
+          display:grid;
+          place-items:center;
+          font-size:48px;
+        "
+      >
+        ☕
+      </div>
     `;
 
   return `
+
     <article
-      class="product-card"
+      class="card"
       data-product-id="${escapeHTML(product.id)}"
-      style="cursor:pointer;overflow:hidden;"
     >
+
       ${image}
 
-      <div style="padding:14px;">
-        <div style="
-          display:flex;
-          justify-content:space-between;
-          gap:8px;
-          align-items:flex-start;
-        ">
-          <h3 style="margin:0;">
+      <div class="row">
+
+        <div>
+
+          <h3>
             ${escapeHTML(product.name)}
           </h3>
 
-          <strong style="white-space:nowrap;">
-            ${formatPrice(product.price)}
-          </strong>
-        </div>
-
-        ${
-          product.description
-            ? `<p style="color:#777;">
-                ${escapeHTML(product.description)}
-              </p>`
-            : ""
-        }
-
-        ${
-          product.ingredients
-            ? `<div style="font-size:13px;color:#777;">
-                (${escapeHTML(product.ingredients)})
-              </div>`
-            : ""
-        }
-
-        <div style="margin-top:8px;">
           ${
-            product.is_special
-              ? `<span class="badge">⭐ پیشنهاد امروز</span>`
+            product.description
+              ? `
+                <p>
+                  ${escapeHTML(product.description)}
+                </p>
+              `
               : ""
           }
 
           ${
-            product.is_best_seller
-              ? `<span class="badge">🔥 پرفروش</span>`
+            product.ingredients
+              ? `
+                <small>
+                  (${escapeHTML(product.ingredients)})
+                </small>
+              `
               : ""
           }
+
         </div>
+
+        <div class="price">
+          ${formatPrice(product.price)}
+        </div>
+
       </div>
+
+      ${
+        product.is_special
+          ? `<span class="tag">⭐ پیشنهاد امروز</span>`
+          : ""
+      }
+
+      ${
+        product.is_best_seller
+          ? `<span class="tag">🔥 پرفروش</span>`
+          : ""
+      }
+
     </article>
+
   `;
 }
 
-function renderSpecials() {
-  const container =
-    $("specials") ||
-    $("todaySpecials") ||
-    document.querySelector(".specials");
 
-  if (!container) return;
+function attachProductClicks(container){
 
-  const specials = products.filter(p => p.is_special);
-
-  if (!specials.length) {
-    container.innerHTML = "";
-    return;
-  }
-
-  container.innerHTML = `
-    <div style="margin-bottom:10px;">
-      <h2>⭐ پیشنهاد امروز</h2>
-    </div>
-    <div class="special-products">
-      ${specials.map(productCard).join("")}
-    </div>
-  `;
-
-  container.querySelectorAll("[data-product-id]")
+  container
+    .querySelectorAll("[data-product-id]")
     .forEach(card => {
-      card.addEventListener("click", () => {
-        openProduct(card.dataset.productId);
+
+      card.addEventListener("click",function(){
+
+        openProduct(
+          card.dataset.productId
+        );
+
       });
+
     });
 }
 
-function openProduct(id) {
-  const product = products.find(
-    p => String(p.id) === String(id)
-  );
 
-  if (!product) return;
+/* =========================
+   پیشنهاد امروز
+========================= */
 
-  const modal =
-    $("productModal") ||
-    $("modal");
+function renderSpecials(){
 
-  if (!modal) {
-    showProductFallback(product);
+  const container = $("specials");
+
+  if(!container) return;
+
+  const specials =
+    products.filter(product =>
+      product.is_special
+    );
+
+  if(!specials.length){
+
+    container.innerHTML = `
+      <div class="special-item">
+        <span>فعلاً پیشنهادی ثبت نشده</span>
+      </div>
+    `;
+
     return;
   }
 
-  const content =
-    modal.querySelector(".modal-content") ||
-    modal;
+  container.innerHTML =
+    specials.map(product => `
 
-  content.innerHTML = `
-    <button
-      onclick="closeProduct()"
-      style="float:left;background:none;color:inherit;font-size:24px;"
-    >×</button>
+      <div
+        class="special-item"
+        data-product-id="${escapeHTML(product.id)}"
+      >
+
+        <b>
+          ${escapeHTML(product.name)}
+        </b>
+
+        <span>
+          ${formatPrice(product.price)}
+        </span>
+
+      </div>
+
+    `).join("");
+
+  attachProductClicks(container);
+}
+
+
+/* =========================
+   جزئیات محصول
+========================= */
+
+function openProduct(id){
+
+  const product =
+    products.find(product =>
+      String(product.id) === String(id)
+    );
+
+  if(!product) return;
+
+  const modal = $("modal");
+
+  const detail = $("detail");
+
+  if(!modal || !detail){
+
+    showProductFallback(product);
+    return;
+
+  }
+
+  detail.innerHTML = `
 
     ${
       product.image_url
-        ? `<img
+        ? `
+          <img
+            class="detail-img"
             src="${escapeHTML(product.image_url)}"
-            style="width:100%;max-height:320px;object-fit:cover;border-radius:14px;"
-          >`
+            alt="${escapeHTML(product.name)}"
+          >
+        `
         : ""
     }
 
-    <h2>${escapeHTML(product.name)}</h2>
+    <h2>
+      ${escapeHTML(product.name)}
+    </h2>
 
-    <h3>${formatPrice(product.price)}</h3>
+    <strong class="price">
+      ${formatPrice(product.price)}
+    </strong>
 
     ${
       product.description
-        ? `<p>${escapeHTML(product.description)}</p>`
+        ? `
+          <p>
+            ${escapeHTML(product.description)}
+          </p>
+        `
         : ""
     }
 
     ${
       product.ingredients
-        ? `<p><strong>مواد تشکیل‌دهنده:</strong><br>
-          ${escapeHTML(product.ingredients)}
-        </p>`
+        ? `
+          <hr>
+
+          <p>
+            <strong>مواد تشکیل‌دهنده:</strong>
+            <br>
+            ${escapeHTML(product.ingredients)}
+          </p>
+        `
         : ""
     }
 
     ${
       product.allergens
-        ? `<p><strong>حساسیت‌زا:</strong><br>
-          ${escapeHTML(product.allergens)}
-        </p>`
+        ? `
+          <p>
+            <strong>حساسیت‌زا:</strong>
+            <br>
+            ${escapeHTML(product.allergens)}
+          </p>
+        `
         : ""
     }
+
   `;
 
-  modal.classList.remove("hidden");
+  modal.classList.add("open");
   modal.style.display = "flex";
 }
 
-function closeProduct() {
-  const modal =
-    $("productModal") ||
-    $("modal");
 
-  if (!modal) return;
+function closeProduct(){
 
-  modal.classList.add("hidden");
+  const modal = $("modal");
+
+  if(!modal) return;
+
+  modal.classList.remove("open");
   modal.style.display = "none";
 }
 
-function showProductFallback(product) {
-  alert(
-    `${product.name}\n\n` +
-    `${formatPrice(product.price)}\n\n` +
-    `${product.description || ""}\n\n` +
-    `${product.ingredients || ""}`
-  );
+
+function closeModal(){
+  closeProduct();
 }
 
-function setupSearch() {
-  const search =
-    $("search") ||
-    $("searchInput") ||
-    document.querySelector('input[type="search"]');
 
-  if (!search || search.dataset.ready) return;
+function showProductFallback(product){
+
+  alert(
+    product.name +
+    "\n\n" +
+    formatPrice(product.price) +
+    "\n\n" +
+    (product.description || "")
+  );
+
+}
+
+
+/* =========================
+   بستن مودال با کلیک بیرون
+========================= */
+
+document.addEventListener("click",function(event){
+
+  const modal = $("modal");
+
+  if(
+    modal &&
+    event.target === modal
+  ){
+
+    closeModal();
+
+  }
+
+});
+
+
+/* =========================
+   جستجو
+========================= */
+
+function setupSearch(){
+
+  const search = $("search");
+
+  if(!search || search.dataset.ready){
+    return;
+  }
 
   search.dataset.ready = "1";
 
-  search.addEventListener("input", () => {
-    const query = search.value.trim().toLowerCase();
+  search.addEventListener("input",function(){
 
-    const container =
-      $("products") ||
-      $("productList") ||
-      document.querySelector(".products");
+    const query =
+      search.value.trim().toLowerCase();
 
-    if (!container) return;
+    const container = $("products");
 
-    if (!query) {
+    if(!container) return;
+
+    if(!query){
+
       renderProducts();
       return;
+
     }
 
-    const result = products.filter(product => {
-      const text = [
-        product.name,
-        product.name_en,
-        product.description,
-        product.ingredients
-      ]
+    const result =
+      products.filter(product => {
+
+        const text = [
+
+          product.name,
+          product.name_en,
+          product.description,
+          product.ingredients
+
+        ]
+
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
 
-      return text.includes(query);
-    });
+        return text.includes(query);
 
-    container.innerHTML = result.length
-      ? result.map(productCard).join("")
-      : `
+      });
+
+    if(!result.length){
+
+      container.innerHTML = `
         <div style="
-          padding:30px;
+          grid-column:1/-1;
+          padding:35px;
           text-align:center;
           color:#777;
+          background:#fff;
+          border-radius:18px;
         ">
           چیزی پیدا نشد.
         </div>
       `;
 
-    container.querySelectorAll("[data-product-id]")
-      .forEach(card => {
-        card.addEventListener("click", () => {
-          openProduct(card.dataset.productId);
-        });
-      });
+      return;
+    }
+
+    container.innerHTML =
+      result.map(productCard).join("");
+
+    attachProductClicks(container);
+
   });
+
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadMenu();
-});
+
+/* =========================
+   شروع سایت
+========================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function(){
+
+    loadMenu();
+
+  }
+);
