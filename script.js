@@ -271,56 +271,7 @@
 
     if (!box) return;
 
-    let list = subcategories;
-
-    if (selectedCategory) {
-      list = subcategories.filter(function (item) {
-        return String(item.category_id) ===
-          String(selectedCategory);
-      });
-    }
-
-    if (!list.length) {
-      box.innerHTML = "";
-      return;
-    }
-
-    let html = "";
-
-    list.forEach(function (item) {
-      html += `
-        <button
-          type="button"
-          class="chip"
-          data-subcategory="${escapeHTML(item.id)}"
-        >
-          ${escapeHTML(item.name)}
-        </button>
-      `;
-    });
-
-    box.innerHTML = html;
-
-    box.querySelectorAll("[data-subcategory]")
-      .forEach(function (button) {
-
-        button.addEventListener("click", function () {
-
-          box.querySelectorAll("[data-subcategory]")
-            .forEach(function (b) {
-              b.classList.remove("active");
-            });
-
-          button.classList.add("active");
-
-          const id = button.dataset.subcategory;
-
-          selectedSubcategory =
-            id === "all" ? null : id;
-
-          renderProducts();
-        });
-      });
+    box.innerHTML = "";
   }
 
   function filteredProducts() {
