@@ -135,6 +135,39 @@
       font-weight:800;
     }
 
+    .cats{
+      display:flex;
+      gap:10px;
+      padding:14px 16px;
+      overflow-x:auto;
+      background:#fff;
+      border-bottom:1px solid var(--line);
+      scrollbar-width:none;
+    }
+
+    .cats::-webkit-scrollbar{display:none}
+
+    .cats button{
+      flex:0 0 auto;
+      min-width:82px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+      color:var(--dark);
+      padding:10px 13px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:2px;
+    }
+
+    .cats button small{
+      font-size:11px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+
     main{
       max-width:920px;
       margin:auto;
@@ -469,7 +502,6 @@
         grid-template-columns:1fr;
       }
 
-      /* اصلاح نمایش کارت محصولات در موبایل */
       #products .card{
         display:block !important;
         width:100%;
@@ -583,6 +615,15 @@
     </button>
   </div>
 </section>
+
+<div class="cats">
+  <button onclick="go('menu')">☕<small>مشاهده منو</small></button>
+  <button onclick="go('menu')">🍳<small>صبحانه</small></button>
+  <button onclick="go('menu')">🍔<small>فست‌فود</small></button>
+  <button onclick="go('menu')">☕<small>قهوه</small></button>
+  <button onclick="go('menu')">🥤<small>نوشیدنی</small></button>
+  <button onclick="go('menu')">🍰<small>دسر</small></button>
+</div>
 
 <main>
 
